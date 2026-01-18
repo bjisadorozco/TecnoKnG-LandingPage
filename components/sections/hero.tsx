@@ -22,7 +22,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent_0%,transparent_49%,var(--color-border)_50%,transparent_51%,transparent_100%)] bg-[length:80px_100%] opacity-30" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:py-0">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:pb-10 md:py-0">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Content */}
           <div className="text-center lg:text-left order-2 lg:order-1">

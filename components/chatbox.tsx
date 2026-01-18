@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MessageCircle, X, Send, Bot, User } from "lucide-react"
+import { MessageCircle, X, Send, Bot, User, BotIcon } from "lucide-react"
 
 interface Message {
   id: string
@@ -111,7 +111,7 @@ export function Chatbox() {
         }`}
         aria-label="Abrir chat"
       >
-        <MessageCircle className="w-6 h-6" />
+        <BotIcon className="w-10 h-10" />
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-background" />
       </button>
 
@@ -126,7 +126,7 @@ export function Chatbox() {
           <div className="flex items-center justify-between p-4 bg-primary text-primary-foreground shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                <Bot className="w-5 h-5" />
+                <Bot className="w-7 h-7" />
               </div>
               <div>
                 <h3 className="font-semibold">Asistente DasTech</h3>
@@ -151,7 +151,7 @@ export function Chatbox() {
               >
                 {message.isBot && (
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Bot className="w-4 h-4 text-primary" />
+                    <Bot className="w-6 h-6 text-primary" />
                   </div>
                 )}
                 <div
@@ -165,7 +165,7 @@ export function Chatbox() {
                 </div>
                 {!message.isBot && (
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4 text-primary-foreground" />
+                    <User className="w-5 h-5 text-primary-foreground" />
                   </div>
                 )}
               </div>

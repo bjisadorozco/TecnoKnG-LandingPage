@@ -18,6 +18,8 @@ import {
   Circle,
   ArrowRight,
   Send,
+  Plus,
+  X,
 } from "lucide-react"
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
 import { useToast } from "@/components/ui/toast"
@@ -25,6 +27,14 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const ADMIN_USERNAME = "admin"
 const ADMIN_PASSWORD = "dastech2024"
+
+const productCategories = [
+  { id: "accessories", label: "Accesorios" },
+  { id: "cables", label: "Cables" },
+  { id: "storage", label: "Almacenamiento" },
+  { id: "batteries", label: "Baterías" },
+  { id: "screens", label: "Pantallas" },
+]
 
 function LoginForm({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = React.useState("")
@@ -272,7 +282,26 @@ function KanbanMessageCard({
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [activeTab, setActiveTab] = React.useState<"orders" | "messages">("orders")
-  const { orders, updateOrderStatus, contactMessages, updateMessageStatus } = useStore()
+  const [isProductModalOpen, setIsProductModalOpen] = React.useState(false)
+  const [productForm, setProductForm] = React.useState({
+    name: "",
+    description: "",
+    price: "",
+    image: "",
+    category: productCategories[0]?.id ?? "accessories",
+    stock: "",
+    available: true,
+  })
+  const {
+    orders,
+    updateOrderStatus,
+    contactMessages,
+    updateMessageStatus,
+    products,
+    addProduct,
+    updateProductStock,
+    toggleProductAvailability,
+  } = useStore()
   const { addToast } = useToast()
 
   const ordersByStatus = {
@@ -327,6 +356,52 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const totalPendingOrders = ordersByStatus.pending.length
   const totalPendingMessages = messagesByStatus.pending.length
+  const lowStockProducts = products.filter((product) => product.stock <= 3)
+
+  const resetProductForm = () =>
+    setProductForm({
+      name: "",
+      description: "",
+      price: "",
+      image: "",
+      category: productCategories[0]?.id ?? "accessories",
+      stock: "",
+      available: true,
+    })
+
+  const handleProductSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!productForm.name || !productForm.price || !productForm.image) {
+      addToast("Completa los campos obligatorios", "error")
+      return
+    }
+
+    addProduct({
+      name: productForm.name,
+      description: productForm.description,
+      price: Number(productForm.price),
+      image: productForm.image,
+      category: productForm.category,
+      stock: Number(productForm.stock) || 0,
+      available: productForm.available,
+    })
+
+    addToast("Producto registrado correctamente", "success")
+    setIsProductModalOpen(false)
+    resetProductForm()
+  }
+
+  const handleStockChange = (productId: string, value: string) => {
+    const stockValue = Number(value)
+    if (Number.isNaN(stockValue) || stockValue < 0) {
+      return
+    }
+    updateProductStock(productId, stockValue)
+  }
+
+  const handleToggleAvailability = (productId: string) => {
+    toggleProductAvailability(productId)
+  }
 
   return (
     <div className="min-h-screen bg-background-secondary">
@@ -406,6 +481,94 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           </div>
         </div>
+
+        {/* Inventory */}
+        <section className="bg-background rounded-2xl border border-border p-4 sm:p-6 mb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-foreground-secondary">Productos disponibles</p>
+              <h2 className="text-xl font-bold text-foreground">Inventario en tiempo real</h2>
+              <p className="text-xs text-foreground-muted mt-1">
+                {lowStockProducts.length > 0
+                  ? `${lowStockProducts.length} productos con bajo stock`
+                  : "Inventario saludable"}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setIsProductModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:shadow-lg transition-shadow"
+              >
+                <Plus className="w-4 h-4" />
+                Registrar producto
+              </button>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
+              >
+                Actualizar vista
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4 max-h-[32rem] overflow-y-auto pr-1 custom-scrollbar">
+            {products.length === 0 ? (
+              <p className="text-foreground-muted text-sm">Aún no hay productos registrados.</p>
+            ) : (
+              products.map((product) => (
+                <div
+                  key={product.id}
+                  className="p-4 rounded-2xl bg-background-secondary border border-border flex flex-col gap-4 sm:flex-row sm:items-center"
+                >
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-background">
+                        <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground leading-tight">{product.name}</p>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                          {productCategories.find((cat) => cat.id === product.category)?.label || product.category}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-foreground-secondary line-clamp-2">{product.description}</p>
+                  </div>
+
+                  <div className="flex flex-col gap-3 w-full sm:w-48">
+                    <div>
+                      <p className="text-xs text-foreground-muted">Precio</p>
+                      <p className="text-lg font-semibold text-foreground">${product.price}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-foreground-muted">Stock</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="number"
+                          min={0}
+                          value={product.stock}
+                          onChange={(e) => handleStockChange(product.id, e.target.value)}
+                          className="flex-1 px-3 py-2 rounded-xl bg-background border border-border text-sm"
+                        />
+                        <span className="text-xs text-foreground-muted">uds.</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggleAvailability(product.id)}
+                      className={`w-full px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                        product.available
+                          ? "bg-primary/10 text-primary hover:bg-primary/20"
+                          : "bg-foreground/10 text-foreground hover:bg-foreground/20"
+                      }`}
+                    >
+                      {product.available ? "Disponible" : "Pausado"}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto">

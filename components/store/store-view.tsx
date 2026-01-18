@@ -29,123 +29,40 @@ const categories = [
   { id: "screens", name: "Pantallas", icon: MonitorSmartphone },
 ]
 
-const products: Product[] = [
-  {
-    id: "1",
-    name: "Cargador USB-C 65W",
-    price: 35,
-    image: "/usb-c-charger-65w-fast-charging-black-modern.jpg",
-    category: "accessories",
-    description: "Cargador rápido compatible con laptops y celulares",
-  },
-  {
-    id: "2",
-    name: "Mouse Inalámbrico Pro",
-    price: 28,
-    image: "/wireless-ergonomic-mouse-black-sleek-design.jpg",
-    category: "accessories",
-    description: "Mouse ergonómico con sensor de alta precisión",
-  },
-  {
-    id: "3",
-    name: "Cable HDMI 2.1 4K",
-    price: 18,
-    image: "/hdmi-cable-4k-premium-braided.jpg",
-    category: "cables",
-    description: "Cable de alta velocidad para monitores 4K",
-  },
-  {
-    id: "4",
-    name: "SSD NVMe 500GB",
-    price: 65,
-    image: "/nvme-ssd-500gb-internal-drive.jpg",
-    category: "storage",
-    description: "Disco de estado sólido de alta velocidad",
-  },
-  {
-    id: "5",
-    name: "Batería iPhone 13",
-    price: 45,
-    image: "/iphone-battery-replacement-internal.jpg",
-    category: "batteries",
-    description: "Batería de reemplazo original",
-  },
-  {
-    id: "6",
-    name: "Pantalla Samsung A54",
-    price: 89,
-    image: "/samsung-phone-screen-amoled-replacement.jpg",
-    category: "screens",
-    description: "Pantalla AMOLED de reemplazo",
-  },
-  {
-    id: "7",
-    name: "Teclado Mecánico RGB",
-    price: 75,
-    image: "/mechanical-rgb-keyboard-gaming-black.jpg",
-    category: "accessories",
-    description: "Teclado gaming con switches mecánicos",
-  },
-  {
-    id: "8",
-    name: "Cable USB-C a Lightning",
-    price: 15,
-    image: "/usb-c-to-lightning-cable-white-braided.jpg",
-    category: "cables",
-    description: "Cable de carga rápida para iPhone",
-  },
-  {
-    id: "9",
-    name: "Disco Duro Externo 1TB",
-    price: 55,
-    image: "/external-hard-drive-1tb-portable-black.jpg",
-    category: "storage",
-    description: "Almacenamiento portátil USB 3.0",
-  },
-  {
-    id: "10",
-    name: "Batería Samsung S22",
-    price: 42,
-    image: "/samsung-galaxy-battery-replacement.jpg",
-    category: "batteries",
-    description: "Batería de reemplazo de alta capacidad",
-  },
-  {
-    id: "11",
-    name: "Webcam HD 1080p",
-    price: 38,
-    image: "/webcam-hd-1080p-streaming-black.jpg",
-    category: "accessories",
-    description: "Cámara web para videollamadas y streaming",
-  },
-  {
-    id: "12",
-    name: "Cable DisplayPort 1.4",
-    price: 22,
-    image: "/displayport-cable-premium-8k.jpg",
-    category: "cables",
-    description: "Cable para monitores gaming de alta frecuencia",
-  },
-]
-
 function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: (product: Product) => void }) {
+  const isOutOfStock = !product.available || product.stock <= 0
   return (
-    <article className="group bg-background rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-      <div className="aspect-square overflow-hidden bg-background-secondary">
+    <article className="group bg-background rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 relative">
+      <div className={`aspect-square overflow-hidden bg-background-secondary ${isOutOfStock ? "opacity-70" : ""}`}>
         <img
           src={product.image || "/placeholder.svg"}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>
+      {isOutOfStock && (
+        <div className="absolute inset-0 flex items-center justify-center bg-foreground/60 text-background font-semibold text-lg tracking-wide">
+          Agotado
+        </div>
+      )}
       <div className="p-4 bg-primary">
-        <h3 className="text-primary-foreground font-semibold text-sm mb-1 truncate">{product.name}</h3>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h3 className="text-primary-foreground font-semibold text-sm truncate" title={product.name}>
+            {product.name}
+          </h3>
+          <span className="text-xs font-medium text-primary-foreground/70">{product.stock} uds.</span>
+        </div>
         <p className="text-primary-foreground/80 font-bold mb-3">${product.price}</p>
         <button
           onClick={() => onAddToCart(product)}
-          className="w-full py-2 rounded-xl bg-background text-primary text-sm font-semibold uppercase tracking-wide transition-all duration-200 hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98]"
+          disabled={isOutOfStock}
+          className={`w-full py-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all duration-200 flex items-center justify-center gap-2 ${
+            isOutOfStock
+              ? "bg-background/60 text-primary-foreground/50 cursor-not-allowed"
+              : "bg-background text-primary hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98]"
+          }`}
         >
-          Agregar
+          {isOutOfStock ? "Sin stock" : "Agregar"}
         </button>
       </div>
     </article>
@@ -445,7 +362,7 @@ export function StoreView() {
   const [cartOpen, setCartOpen] = React.useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
-  const { cartCount, addToCart } = useStore()
+  const { cart, cartCount, addToCart, products } = useStore()
   const { addToast } = useToast()
 
   const filteredProducts = React.useMemo(() => {
@@ -460,9 +377,14 @@ export function StoreView() {
       )
     }
     return filtered
-  }, [activeCategory, searchQuery])
+  }, [activeCategory, searchQuery, products])
 
   const handleAddToCart = (product: Product) => {
+    const inCart = cart.find((item) => item.id === product.id)
+    if (!product.available || product.stock <= (inCart?.quantity || 0)) {
+      addToast("Este producto no tiene stock disponible", "error")
+      return
+    }
     addToCart(product)
     addToast(`${product.name} agregado al carrito`, "success")
   }

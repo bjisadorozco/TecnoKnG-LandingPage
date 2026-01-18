@@ -26,94 +26,39 @@ const categories = [
   { id: "screens", name: "Pantallas", icon: MonitorSmartphone },
 ]
 
-const products: Product[] = [
-  {
-    id: "1",
-    name: "Cargador USB-C 65W",
-    price: 35,
-    image: "/usb-c-charger-65w-fast-charging.jpg",
-    category: "accessories",
-    description: "Cargador rápido compatible con laptops y celulares",
-  },
-  {
-    id: "2",
-    name: "Mouse Inalámbrico Pro",
-    price: 28,
-    image: "/wireless-ergonomic-mouse-black.jpg",
-    category: "accessories",
-    description: "Mouse ergonómico con sensor de alta precisión",
-  },
-  {
-    id: "3",
-    name: "Cable HDMI 2.1 4K",
-    price: 18,
-    image: "/hdmi-cable-4k-premium.jpg",
-    category: "cables",
-    description: "Cable de alta velocidad para monitores 4K",
-  },
-  {
-    id: "4",
-    name: "SSD NVMe 500GB",
-    price: 65,
-    image: "/nvme-ssd-500gb-internal.jpg",
-    category: "storage",
-    description: "Disco de estado sólido de alta velocidad",
-  },
-  {
-    id: "5",
-    name: "Batería iPhone 13",
-    price: 45,
-    image: "/iphone-battery-replacement.jpg",
-    category: "batteries",
-    description: "Batería de reemplazo original",
-  },
-  {
-    id: "6",
-    name: "Pantalla Samsung A54",
-    price: 89,
-    image: "/samsung-phone-screen-replacement.jpg",
-    category: "screens",
-    description: "Pantalla AMOLED de reemplazo",
-  },
-  {
-    id: "7",
-    name: "Teclado Mecánico RGB",
-    price: 75,
-    image: "/mechanical-rgb-keyboard-gaming.jpg",
-    category: "accessories",
-    description: "Teclado gaming con switches mecánicos",
-  },
-  {
-    id: "8",
-    name: "Cable USB-C a Lightning",
-    price: 15,
-    image: "/usb-c-to-lightning-cable-white.jpg",
-    category: "cables",
-    description: "Cable de carga rápida para iPhone",
-  },
-]
-
-function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useStore()
-
+function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: (product: Product) => void }) {
+  const isOutOfStock = !product.available || product.stock <= 0
   return (
     <article className="group relative rounded-2xl overflow-hidden bg-background border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
-      <div className="aspect-square overflow-hidden bg-background-secondary">
+      <div className={`aspect-square overflow-hidden bg-background-secondary ${isOutOfStock ? "opacity-60" : ""}`}>
         <img
           src={product.image || "/placeholder.svg"}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>
+      {isOutOfStock && (
+        <div className="absolute inset-0 flex items-center justify-center bg-foreground/60 text-background text-sm font-semibold tracking-wide">
+          Sin stock
+        </div>
+      )}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-primary rounded-b-2xl">
-        <h3 className="text-primary-foreground font-semibold text-sm mb-1 truncate">{product.name}</h3>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h3 className="text-primary-foreground font-semibold text-sm truncate">{product.name}</h3>
+          <span className="text-xs text-primary-foreground/70">{product.stock} uds.</span>
+        </div>
         <div className="flex items-center justify-between gap-2">
           <span className="text-primary-foreground/80 font-bold">${product.price}</span>
           <button
-            onClick={() => addToCart(product)}
-            className="px-4 py-1.5 rounded-full bg-background text-primary text-xs font-semibold uppercase tracking-wide transition-all duration-200 hover:bg-primary-foreground hover:scale-105 active:scale-95"
+            onClick={() => onAddToCart(product)}
+            disabled={isOutOfStock}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all duration-200 ${
+              isOutOfStock
+                ? "bg-background/40 text-primary-foreground/50 cursor-not-allowed"
+                : "bg-background text-primary hover:bg-primary-foreground hover:text-primary-foreground hover:scale-105 active:scale-95"
+            }`}
           >
-            Agregar
+            {isOutOfStock ? "Agotado" : "Agregar"}
           </button>
         </div>
       </div>
@@ -231,12 +176,12 @@ export function StoreSection() {
   const [activeCategory, setActiveCategory] = React.useState("all")
   const [cartOpen, setCartOpen] = React.useState(false)
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
-  const { cartCount } = useStore()
+  const { cartCount, addToCart, products: storeProducts } = useStore()
 
   const filteredProducts = React.useMemo(() => {
-    if (activeCategory === "all") return products
-    return products.filter((p) => p.category === activeCategory)
-  }, [activeCategory])
+    if (activeCategory === "all") return storeProducts
+    return storeProducts.filter((p) => p.category === activeCategory)
+  }, [activeCategory, storeProducts])
 
   return (
     <section id="tienda" className="py-20 md:py-9 bg-background">
@@ -362,7 +307,7 @@ export function StoreSection() {
           <div className="flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
               ))}
             </div>
             {filteredProducts.length === 0 && (

@@ -10,7 +10,7 @@ const stats = [
 
 export function AboutSection() {
   return (
-    <section id="sobre-mi" className="py-20 md:py-9 bg-background-secondary">
+    <section id="sobre-mi" className="py-10 md:py-9 bg-background-secondary">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div className="relative group">
@@ -35,24 +35,26 @@ export function AboutSection() {
             />
 
             {/* Floating Stats Card */}
-            <div className="absolute -bottom-6 -right-6 md:bottom-8 md:-right-8 p-6 rounded-2xl bg-primary text-primary-foreground shadow-xl animate-pulse-slow">
-              <p className="text-4xl font-bold mb-1">98%</p>
-              <p className="text-sm text-primary-foreground/80">Tasa de éxito</p>
+            <div className="absolute -bottom-6 -right-3 md:bottom-4 md:-right-8 p-3 rounded-2xl bg-primary text-primary-foreground shadow-xl animate-pulse-slow">
+              <p className="text-2xl font-bold mb-1">Tec. Desison Silva</p>
+              {/* <p className="text-sm text-primary-foreground/80">Tasa de éxito</p> */}
             </div>
           </div>
 
           {/* Content */}
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <User className="w-4 h-4" />
-              <span>Sobre mí</span>
+            <div className="flex justify-center md:justify-start">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+                <User className="w-4 h-4" />
+                <span>Sobre mí</span>
+              </div>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 text-balance">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 text-balance text-center md:text-left">
               Pasión por la <span className="text-primary">tecnología</span>
             </h2>
 
-            <div className="space-y-4 text-foreground-secondary leading-relaxed mb-8">
+            <div className="space-y-4 text-foreground-secondary leading-relaxed mb-8 text-center md:text-left">
               <p>
                 Soy técnico certificado con más de 5 años de experiencia en el sector tecnológico. Mi misión es
                 brindarte soluciones rápidas, confiables y accesibles para todos tus dispositivos.
