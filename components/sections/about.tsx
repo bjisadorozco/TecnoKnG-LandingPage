@@ -36,7 +36,7 @@ export function AboutSection() {
 
             {/* Floating Stats Card */}
             <div className="absolute -bottom-6 -right-3 md:bottom-4 md:-right-8 p-3 rounded-2xl bg-primary text-primary-foreground shadow-xl animate-pulse-slow">
-              <p className="text-2xl font-bold mb-1">Tec. Desison Silva</p>
+              <p className="text-2xl font-bold mb-1">Tec. Deison Silva</p>
               {/* <p className="text-sm text-primary-foreground/80">Tasa de éxito</p> */}
             </div>
           </div>

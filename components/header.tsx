@@ -3,7 +3,19 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Wrench, ShoppingBag, Phone, Menu, X, Cpu, MessageCircle, Info, Star, Settings, User2 } from "lucide-react"
+import {
+  Home,
+  Wrench,
+  ShoppingBag,
+  Phone,
+  Grid3X3,
+  X,
+  Cpu,
+  Info,
+  Star,
+  User,
+  User2,
+} from "lucide-react"
 import { ThemeToggle } from "./ui/theme-toggle"
 import { useStore } from "@/lib/store-context"
 
@@ -19,188 +31,171 @@ const navItems = [
 export function Header() {
   const [isOpen, setIsOpen] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
+
   const pathname = usePathname()
   const { cartCount } = useStore()
+
   const isStorePage = pathname === "/tienda"
   const isAdminPage = pathname === "/admin"
 
+  /* Scroll desktop */
   React.useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener("scroll", onScroll)
+    return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  /* Lock body */
   React.useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsOpen(false)
-    }
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => {
-      document.removeEventListener("keydown", handleEscape)
-      document.body.style.overflow = ""
-    }
+    document.body.style.overflow = isOpen ? "hidden" : ""
   }, [isOpen])
-
-  const handleLinkClick = () => {
-    setIsOpen(false)
-  }
 
   if (isAdminPage) return null
 
   return (
     <>
-      {/* Desktop Header */}
+      {/* ================= DESKTOP ================= */}
       <header
         className={
           isStorePage
-            ? "hidden md:block relative z-40 bg-background border-b border-border"
-            : `hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-                scrolled ? "glass shadow-lg border-b border-border" : "bg-transparent"
+            ? "hidden md:block relative bg-background border-b"
+            : `hidden md:block fixed top-0 left-0 right-0 z-50 transition ${
+                scrolled ? "glass shadow-lg border-b" : "bg-transparent"
               }`
         }
       >
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <nav className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
-                <Cpu className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-foreground">
-                Das<span className="text-primary">Tech</span>
-              </span>
-            </Link>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+              <Cpu className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span className="text-xl font-bold">
+              Das<span className="text-primary">Tech</span>
+            </span>
+          </Link>
 
-            <div className="flex items-center gap-8">
-              <ul className="flex items-center gap-6">
-                {navItems.map((item) => (
-                  <li key={item.href} className="relative">
-                    <Link
-                      href={item.href}
-                      className={`text-foreground-secondary hover:text-primary transition-colors duration-200 font-medium text-sm flex items-center gap-1 ${
-                        item.href === "/tienda" && isStorePage ? "text-primary" : ""
-                      }`}
-                    >
-                      {item.label}
-                      {item.href === "/tienda" && cartCount > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                          {cartCount}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <ThemeToggle />
-              <Link
-                href="/admin"
-                className="w-10 h-10 rounded-xl bg-background-secondary border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
-                title="Panel de Administración"
-              >
-                <User2 className="w-5 h-5" />
-              </Link>
-            </div> 
-          </nav>
+          <div className="flex items-center gap-8">
+            <ul className="flex gap-6">
+              {navItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`text-sm hover:text-primary ${
+                      item.href === "/tienda" && isStorePage ? "text-primary" : ""
+                    }`}
+                  >
+                    {item.label}
+                    {item.href === "/tienda" && cartCount > 0 && (
+                      <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary text-xs text-primary-foreground">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <ThemeToggle />
+
+            <Link
+              href="/admin"
+              className="w-10 h-10 rounded-xl border flex items-center justify-center"
+            >
+              <User2 className="w-5 h-5" />
+            </Link>
+          </div>
         </div>
       </header>
 
-      <header className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.12)]">
+      {/* ================= MOBILE FOOTER ================= */}
+      <footer className="md:hidden fixed bottom-0 left-0 right-0 z-60 glass border-t">
         <div className="flex items-center justify-between px-6 py-3">
+          {/* Texto izquierda */}
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-foreground-muted">Navegación</p>
-            <p className="text-sm font-semibold text-foreground">Explora DasTech</p>
+
+              <>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                  DasTech
+                </p>
+                <p className="text-sm font-semibold">Navegación</p>
+              </>
           </div>
+
+          {/* Botón derecha */}
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center transition-transform active:scale-95"
-            aria-controls="mobile-menu"
-            aria-expanded={isOpen}
+            onClick={() => setIsOpen((v) => !v)}
+            className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center"
             aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
           >
-            {isOpen ? <X className="w-5 h-5 text-primary-foreground" /> : <Menu className="w-5 h-5 text-primary-foreground" />}
+            {isOpen ? (
+              <X className="w-5 h-5 text-primary-foreground" />
+            ) : (
+              <Grid3X3 className="w-5 h-5 text-primary-foreground" />
+            )}
           </button>
         </div>
-      </header>
+      </footer>
 
+      {/* ================= OVERLAY ================= */}
       <div
-        className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
         onClick={() => setIsOpen(false)}
-      >
-        <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" />
-      </div>
+        className={`md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      />
 
+      {/* ================= MOBILE MENU ================= */}
       <nav
-        id="mobile-menu"
-        className={`md:hidden fixed bottom-[84px] left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] border-t border-border transition-transform duration-300 ease-out ${
+        className={`md:hidden fixed left-0 right-0 bottom-[70px] z-50
+        bg-background rounded-t-3xl border-t shadow-[0_-10px_40px_rgba(0,0,0,0.2)]
+        transition-transform duration-300 ${
           isOpen ? "translate-y-0" : "translate-y-full pointer-events-none"
         }`}
-        aria-hidden={!isOpen}
       >
         <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <Link href="/" className="flex items-center gap-2" onClick={handleLinkClick}>
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                <Cpu className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-foreground-muted">DasTech</p>
-                <p className="text-sm font-semibold text-foreground">Navegación principal</p>
-              </div>
-            </Link>
-            <ThemeToggle />
-          </div>
+          {/* Header del menú (SOLO cuando está abierto) */}
+          {isOpen && (
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href="/"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2"
+              >
+                <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+                  <Cpu className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <span className="font-semibold">DasTech</span>
+              </Link>
+
+              {/* Toggle SOLO aquí */}
+              <ThemeToggle />
+            </div>
+          )}
+
           <ul className="grid grid-cols-3 gap-4">
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  onClick={handleLinkClick}
-                  className="relative flex flex-col items-center gap-2 p-4 rounded-2xl bg-background-secondary hover:bg-primary hover:text-primary-foreground transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-                  tabIndex={isOpen ? 0 : -1}
+                  onClick={() => setIsOpen(false)}
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl
+                  bg-muted hover:bg-primary hover:text-primary-foreground transition"
                 >
-                  <item.icon className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
-                  <span className="text-xs font-medium text-foreground-secondary group-hover:text-primary-foreground transition-colors">
-                    {item.label}
-                  </span>
-                  {item.href === "/tienda" && cartCount > 0 && (
-                    <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center group-hover:bg-background group-hover:text-primary">
-                      {cartCount}
-                    </span>
-                  )}
+                  <item.icon className="w-6 h-6" />
+                  <span className="text-xs font-medium">{item.label}</span>
                 </Link>
               </li>
             ))}
-            <li>
-              <button
-                onClick={handleLinkClick}
-                className="w-full flex flex-col items-center gap-2 p-4 rounded-2xl bg-background-secondary hover:bg-primary hover:text-primary-foreground transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-                tabIndex={isOpen ? 0 : -1}
-              >
-                <MessageCircle className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
-                <span className="text-xs font-medium text-foreground-secondary group-hover:text-primary-foreground transition-colors">
-                  Chat
-                </span>
-              </button>
-            </li>
+
             <li>
               <Link
                 href="/admin"
-                onClick={handleLinkClick}
-                className="w-full flex flex-col items-center gap-2 p-4 rounded-2xl bg-background-secondary hover:bg-primary hover:text-primary-foreground transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-                tabIndex={isOpen ? 0 : -1}
+                onClick={() => setIsOpen(false)}
+                className="flex flex-col items-center gap-2 p-4 rounded-2xl
+                bg-muted hover:bg-primary hover:text-primary-foreground transition"
               >
-                <Settings className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
-                <span className="text-xs font-medium text-foreground-secondary group-hover:text-primary-foreground transition-colors">
-                  Admin
-                </span>
+                <User className="w-6 h-6" />
+                <span className="text-xs font-medium">Admin</span>
               </Link>
             </li>
           </ul>

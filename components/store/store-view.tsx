@@ -420,8 +420,8 @@ export function StoreView() {
               </button>
             ))}
           </nav>
-
-          <div className="p-4 mt-auto">
+          {/* Carrito en desktop - OCULTO*/}
+          <div className="p-4 mt-auto hidden">
             <button
               onClick={() => setCartOpen(true)}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
@@ -434,28 +434,28 @@ export function StoreView() {
                 </span>
               )}
             </button>
-            <p className="text-primary-foreground/50 text-xs mt-4 text-center">© 2026 DasTech</p>
           </div>
+            <p className="text-primary-foreground/50 text-md mb-6 text-center">© 2026 DasTech</p>
         </aside>
 
         {/* Main Content */}
         <main className="flex-1">
           {/* Mobile Header */}
           <div className="lg:hidden sticky top-0 z-40 bg-background border-b border-border">
-            <div className="flex items-center justify-between p-4">
+            <div className="flex items-center justify-between p-4 gap-3">
+              <Link href="/" className="text-lg font-bold text-foreground flex-shrink-0">
+                Das<span className="text-primary">Tech</span>
+              </Link>
               <button
                 onClick={() => setMobileSidebarOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium flex-1 justify-center"
               >
                 <Package className="w-5 h-5" />
                 <span>Categorías</span>
               </button>
-              <Link href="/" className="text-lg font-bold text-foreground">
-                Das<span className="text-primary">Tech</span>
-              </Link>
               <button
                 onClick={() => setCartOpen(true)}
-                className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground"
+                className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0"
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
@@ -470,7 +470,7 @@ export function StoreView() {
           {/* Products Area */}
           <div className="p-4 lg:p-8">
             {/* Search */}
-            <div className="mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <div className="relative max-w-md">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted" />
                 <input
@@ -481,6 +481,21 @@ export function StoreView() {
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
+              {/* Carrito en web */}
+             <div className="p-4 mt-auto hidden md:block">
+                <button
+                  onClick={() => setCartOpen(true)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  <span className="text-sm">Carrito</span>
+                  {cartCount > 0 && (
+                    <span className="ml-auto px-2 py-0.5 rounded-full bg-primary-foreground text-primary text-xs font-bold">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+          </div>
             </div>
 
             {/* Category Title */}

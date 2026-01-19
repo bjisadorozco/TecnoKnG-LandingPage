@@ -69,6 +69,21 @@ export function Chatbox() {
     }
   }, [isOpen])
 
+  React.useEffect(() => {
+    const event = new CustomEvent("dastech-chatbox-toggle", {
+      detail: { open: isOpen },
+    })
+    window.dispatchEvent(event)
+
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("dastech-chatbox-toggle", {
+          detail: { open: false },
+        }),
+      )
+    }
+  }, [isOpen])
+
   const sendMessage = async (content: string) => {
     if (!content.trim()) return
 
@@ -103,6 +118,14 @@ export function Chatbox() {
 
   return (
     <>
+      <div
+        className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsOpen(false)}
+      >
+        <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" />
+      </div>
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(true)}

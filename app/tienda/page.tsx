@@ -12,7 +12,7 @@ export default function TiendaPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pb-20 md:pb-0 pt-0">
+      <main className="pb-16 md:pb-0 pt-0">
         <StoreView />
       </main>
 

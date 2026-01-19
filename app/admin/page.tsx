@@ -20,13 +20,14 @@ import {
   Send,
   Plus,
   X,
+  LogOut,
 } from "lucide-react"
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
 import { useToast } from "@/components/ui/toast"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const ADMIN_USERNAME = "admin"
-const ADMIN_PASSWORD = "dastech2024"
+const ADMIN_PASSWORD = "admin123"
 
 const productCategories = [
   { id: "accessories", label: "Accesorios" },
@@ -358,7 +359,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const totalPendingMessages = messagesByStatus.pending.length
   const lowStockProducts = products.filter((product) => product.stock <= 3)
 
-  const resetProductForm = () =>
+  const resetProductForm = React.useCallback(() => {
     setProductForm({
       name: "",
       description: "",
@@ -368,6 +369,19 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       stock: "",
       available: true,
     })
+  }, [])
+
+  const handleProductInputChange = <K extends keyof typeof productForm>(field: K, value: typeof productForm[K]) => {
+    setProductForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const closeProductModal = React.useCallback(() => {
+    setIsProductModalOpen(false)
+    resetProductForm()
+  }, [resetProductForm])
 
   const handleProductSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -387,8 +401,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     })
 
     addToast("Producto registrado correctamente", "success")
-    setIsProductModalOpen(false)
-    resetProductForm()
+    closeProductModal()
   }
 
   const handleStockChange = (productId: string, value: string) => {
@@ -418,15 +431,16 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <span className="hidden sm:inline">Volver</span>
               </Link>
               <div className="h-6 w-px bg-border" />
-              <h1 className="text-lg font-bold text-foreground">Panel Admin</h1>
+              <h1 className="text-lg font-bold text-foreground">Panel de Administración</h1>
             </div>
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <button
                 onClick={onLogout}
-                className="px-4 py-2 rounded-lg bg-error/10 text-error text-sm font-medium hover:bg-error/20 transition-colors"
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-error/10 text-error text-sm font-medium hover:bg-error/20 transition-colors"
               >
-                Salir
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Cerrar sesión</span>
               </button>
             </div>
           </div>
@@ -481,94 +495,6 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           </div>
         </div>
-
-        {/* Inventory */}
-        <section className="bg-background rounded-2xl border border-border p-4 sm:p-6 mb-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-foreground-secondary">Productos disponibles</p>
-              <h2 className="text-xl font-bold text-foreground">Inventario en tiempo real</h2>
-              <p className="text-xs text-foreground-muted mt-1">
-                {lowStockProducts.length > 0
-                  ? `${lowStockProducts.length} productos con bajo stock`
-                  : "Inventario saludable"}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => setIsProductModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:shadow-lg transition-shadow"
-              >
-                <Plus className="w-4 h-4" />
-                Registrar producto
-              </button>
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
-              >
-                Actualizar vista
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-4 max-h-[32rem] overflow-y-auto pr-1 custom-scrollbar">
-            {products.length === 0 ? (
-              <p className="text-foreground-muted text-sm">Aún no hay productos registrados.</p>
-            ) : (
-              products.map((product) => (
-                <div
-                  key={product.id}
-                  className="p-4 rounded-2xl bg-background-secondary border border-border flex flex-col gap-4 sm:flex-row sm:items-center"
-                >
-                  <div className="flex-1 min-w-[200px]">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-background">
-                        <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground leading-tight">{product.name}</p>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                          {productCategories.find((cat) => cat.id === product.category)?.label || product.category}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-foreground-secondary line-clamp-2">{product.description}</p>
-                  </div>
-
-                  <div className="flex flex-col gap-3 w-full sm:w-48">
-                    <div>
-                      <p className="text-xs text-foreground-muted">Precio</p>
-                      <p className="text-lg font-semibold text-foreground">${product.price}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs text-foreground-muted">Stock</label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <input
-                          type="number"
-                          min={0}
-                          value={product.stock}
-                          onChange={(e) => handleStockChange(product.id, e.target.value)}
-                          className="flex-1 px-3 py-2 rounded-xl bg-background border border-border text-sm"
-                        />
-                        <span className="text-xs text-foreground-muted">uds.</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleToggleAvailability(product.id)}
-                      className={`w-full px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                        product.available
-                          ? "bg-primary/10 text-primary hover:bg-primary/20"
-                          : "bg-foreground/10 text-foreground hover:bg-foreground/20"
-                      }`}
-                    >
-                      {product.available ? "Disponible" : "Pausado"}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto">
@@ -781,7 +707,217 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           </div>
         )}
+
+        {/* Inventory */}
+        <section className="bg-background rounded-2xl border border-border p-4 sm:p-6 mt-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-foreground-secondary">Productos disponibles</p>
+              <h2 className="text-xl font-bold text-foreground">Inventario en tiempo real</h2>
+              <p className="text-xs text-foreground-muted mt-1">
+                {lowStockProducts.length > 0
+                  ? `${lowStockProducts.length} productos con bajo stock`
+                  : "Inventario saludable"}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
+              <button
+                onClick={() => setIsProductModalOpen(true)}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:shadow-lg transition-shadow"
+              >
+                <Plus className="w-4 h-4" />
+                Registrar producto
+              </button>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
+              >
+                Actualizar vista
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {products.length === 0 ? (
+              <p className="col-span-full text-center text-foreground-muted text-sm">Aún no hay productos registrados.</p>
+            ) : (
+              products.map((product) => (
+                <div key={product.id} className="p-4 rounded-2xl bg-background-secondary border border-border flex flex-col gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-background">
+                      <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-foreground leading-tight line-clamp-2">{product.name}</p>
+                      <span className="inline-flex mt-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {productCategories.find((cat) => cat.id === product.category)?.label || product.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-foreground-secondary line-clamp-3 min-h-[3.5rem]">{product.description}</p>
+
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-row items-start gap-4">
+                      <div className="min-w-[150px] flex flex-col gap-1">
+                        <p className="text-xs text-foreground-muted">Precio</p>
+                        <p className="text-lg font-semibold text-foreground">${product.price}</p>
+                      </div>
+                      <div className="flex-1 min-w-[160px] max-w-sm flex flex-col gap-1">
+                        <p className="text-xs text-foreground-muted">Stock</p>
+                        <p className="text-lg font-semibold text-foreground">{product.stock}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggleAvailability(product.id)}
+                      className={`w-full px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                        product.available
+                          ? "bg-primary/10 text-primary hover:bg-primary/20"
+                          : "bg-foreground/10 text-foreground hover:bg-foreground/20"
+                      }`}
+                    >
+                      {product.available ? "Disponible" : "Pausado"}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </main>
+
+      {isProductModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={closeProductModal} />
+          <div className="relative z-10 w-full max-w-xl bg-background rounded-2xl shadow-2xl border border-border p-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm text-foreground-muted">Nuevo producto</p>
+                <h3 className="text-2xl font-bold text-foreground">Registrar producto</h3>
+              </div>
+              <button
+                onClick={closeProductModal}
+                className="w-10 h-10 rounded-xl bg-background-secondary border border-border flex items-center justify-center hover:text-primary"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleProductSubmit} className="mt-6 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium text-foreground">Nombre</label>
+                  <input
+                    type="text"
+                    value={productForm.name}
+                    onChange={(e) => handleProductInputChange("name", e.target.value)}
+                    required
+                    className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                    placeholder="Nombre del producto"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground">Precio</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={productForm.price}
+                    onChange={(e) => handleProductInputChange("price", e.target.value)}
+                    required
+                    className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground">Descripción</label>
+                <textarea
+                  value={productForm.description}
+                  onChange={(e) => handleProductInputChange("description", e.target.value)}
+                  rows={3}
+                  className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                  placeholder="Cuéntale al cliente por qué este producto es especial"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground">Imagen (URL)</label>
+                <input
+                  type="url"
+                  value={productForm.image}
+                  onChange={(e) => handleProductInputChange("image", e.target.value)}
+                  required
+                  className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium text-foreground">Categoría</label>
+                  <select
+                    value={productForm.category}
+                    onChange={(e) => handleProductInputChange("category", e.target.value)}
+                    className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                  >
+                    {productCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground">Stock</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={productForm.stock}
+                    onChange={(e) => handleProductInputChange("stock", e.target.value)}
+                    className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-2xl border border-border p-4">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Disponibilidad</p>
+                  <p className="text-xs text-foreground-muted">Controla si el producto aparece en la tienda</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleProductInputChange("available", !productForm.available)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    productForm.available ? "bg-primary/10 text-primary" : "bg-foreground/10 text-foreground"
+                  }`}
+                >
+                  {productForm.available ? "Activo" : "Pausado"}
+                </button>
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeProductModal}
+                  className="w-full sm:w-auto px-4 py-3 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-foreground"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover"
+                >
+                  Registrar producto
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
