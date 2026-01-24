@@ -423,8 +423,8 @@ export function StoreView() {
           {/* Main Content */}
           <main className="flex-1">
             {/* Mobile Header */}
-            <div className="lg:hidden sticky top-0 z-40 bg-background border-b border-border">
-              <div className="flex items-center justify-between p-4 gap-3">
+            <div className="lg:hidden sticky top-0 z-40 bg-background border-b border-border -mx-4 -mt-4">
+              <div className="flex items-center justify-between px-4 py-3 gap-3">
                 <Link href="/" className="text-lg font-bold text-foreground flex-shrink-0">
                   Das<span className="text-primary">Tech</span>
                 </Link>

@@ -742,12 +742,14 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               <p className="col-span-full text-center text-foreground-muted text-sm">Aún no hay productos registrados.</p>
             ) : (
               products.map((product) => (
-                <div key={product.id} className="p-4 rounded-2xl bg-background-secondary border border-border flex flex-col gap-4">
-                  <div className="flex items-start gap-3">
+                <div
+                  key={product.id}
+                  className="p-4 rounded-2xl bg-background-secondary border border-border flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row items-start gap-3">
                     <div className="w-14 h-14 rounded-xl overflow-hidden bg-background">
                       <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 w-full">
                       <p className="font-semibold text-foreground leading-tight line-clamp-2">{product.name}</p>
                       <span className="inline-flex mt-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                         {productCategories.find((cat) => cat.id === product.category)?.label || product.category}
@@ -758,14 +760,23 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   <p className="text-sm text-foreground-secondary line-clamp-3 min-h-[3.5rem]">{product.description}</p>
 
                   <div className="flex flex-col gap-4">
-                    <div className="flex flex-row items-start gap-4">
-                      <div className="min-w-[150px] flex flex-col gap-1">
+                    <div className="flex flex-wrap items-start gap-4">
+                      <div className="min-w-[120px] flex flex-col gap-1">
                         <p className="text-xs text-foreground-muted">Precio</p>
                         <p className="text-lg font-semibold text-foreground">${product.price}</p>
                       </div>
-                      <div className="flex-1 min-w-[160px] max-w-sm flex flex-col gap-1">
+                      <div className="flex-1 min-w-[140px] flex flex-col gap-1">
                         <p className="text-xs text-foreground-muted">Stock</p>
-                        <p className="text-lg font-semibold text-foreground">{product.stock}</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={0}
+                            value={product.stock}
+                            onChange={(e) => handleStockChange(product.id, e.target.value)}
+                            className="w-24 sm:w-28 px-3 py-2 rounded-xl bg-background border border-border text-sm"
+                          />
+                          <span className="text-xs text-foreground-muted">uds.</span>
+                        </div>
                       </div>
                     </div>
                     <button
