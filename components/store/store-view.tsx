@@ -393,129 +393,112 @@ export function StoreView() {
 
   return (
     <section className="min-h-screen bg-background-secondary">
-      <div className="flex min-h-screen">
-        {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 bg-gradient-to-b from-primary via-primary to-primary/90 sticky top-0 h-screen">
-          {/* <div className="p-6">
-            <Link href="/" className="flex items-center gap-2 text-primary-foreground mb-2">
-              <ChevronLeft className="w-4 h-4" />
-              <span className="text-sm">Volver</span>
-            </Link>
-            <span className="text-2xl font-bold text-primary-foreground">TecnoKnG</span>
-          </div> */}
+      <div className="relative">
+        <div className="pointer-events-none hidden lg:block absolute inset-y-0 left-0 w-28 bg-gradient-to-r from-background-secondary via-background/80 to-transparent backdrop-blur-[12px] opacity-90 z-10" />
+        <div className="pointer-events-none hidden lg:block absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-background-secondary via-background/80 to-transparent backdrop-blur-[12px] opacity-90 z-10" />
 
-          <nav className="flex-1 px-4 space-y-1 pt-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
-                  activeCategory === category.id
-                    ? "bg-primary-foreground text-primary font-semibold"
-                    : "text-primary-foreground/80 hover:bg-primary-foreground/10"
-                }`}
-              >
-                <category.icon className="w-5 h-5" />
-                <span className="text-sm">{category.name}</span>
-              </button>
-            ))}
-          </nav>
-          {/* Carrito en desktop - OCULTO*/}
-          <div className="p-4 mt-auto hidden">
-            <button
-              onClick={() => setCartOpen(true)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              <span className="text-sm">Carrito</span>
-              {cartCount > 0 && (
-                <span className="ml-auto px-2 py-0.5 rounded-full bg-primary-foreground text-primary text-xs font-bold">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
-            <p className="text-primary-foreground/50 text-md mb-6 text-center">© 2026 TecnoKnG</p>
-        </aside>
+        <div className="relative z-20 px-4 py-4 lg:px-6 lg:py-0 lg:max-w-7xl lg:mx-auto">
+          <div className="flex min-h-screen gap-6 lg:gap-0">
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:flex flex-col w-64 bg-gradient-to-b from-primary via-primary to-primary/90 sticky top-0 h-screen">
+            <nav className="flex-1 px-4 space-y-1 pt-2">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                    activeCategory === category.id
+                      ? "bg-primary-foreground text-primary font-semibold"
+                      : "text-primary-foreground/80 hover:bg-primary-foreground/10"
+                  }`}
+                >
+                  <category.icon className="w-5 h-5" />
+                  <span className="text-sm">{category.name}</span>
+                </button>
+              ))}
+            </nav>
+            <div className="px-4 pb-6 text-center text-primary-foreground/60 text-xs">© 2026 DasTech</div>
+          </aside>
 
-        {/* Main Content */}
-        <main className="flex-1">
-          {/* Mobile Header */}
-          <div className="lg:hidden sticky top-0 z-40 bg-background border-b border-border">
-            <div className="flex items-center justify-between p-4 gap-3">
-              <Link href="/" className="text-lg font-bold text-foreground flex-shrink-0">
-                Tecno<span className="text-primary">KnG</span>
-              </Link>
-              <button
-                onClick={() => setMobileSidebarOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium flex-1 justify-center"
-              >
-                <Package className="w-5 h-5" />
-                <span>Categorías</span>
-              </button>
-              <button
-                onClick={() => setCartOpen(true)}
-                className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error text-white text-xs font-bold flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Products Area */}
-          <div className="p-4 lg:p-8">
-            {/* Search */}
-            <div className="mb-6 flex items-center justify-between">
-              <div className="relative max-w-md">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted" />
-                <input
-                  type="text"
-                  placeholder="Buscar productos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
-              </div>
-              {/* Carrito en web */}
-             <div className="p-4 mt-auto hidden md:block">
+          {/* Main Content */}
+          <main className="flex-1">
+            {/* Mobile Header */}
+            <div className="lg:hidden sticky top-0 z-40 bg-background border-b border-border">
+              <div className="flex items-center justify-between p-4 gap-3">
+                <Link href="/" className="text-lg font-bold text-foreground flex-shrink-0">
+                  Das<span className="text-primary">Tech</span>
+                </Link>
+                <button
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium flex-1 justify-center"
+                >
+                  <Package className="w-5 h-5" />
+                  <span>Categorías</span>
+                </button>
                 <button
                   onClick={() => setCartOpen(true)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
+                  className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  <span className="text-sm">Carrito</span>
                   {cartCount > 0 && (
-                    <span className="ml-auto px-2 py-0.5 rounded-full bg-primary-foreground text-primary text-xs font-bold">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error text-white text-xs font-bold flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}
                 </button>
-          </div>
+              </div>
             </div>
 
-            {/* Category Title */}
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-6">{activeCategoryName}</h1>
+            {/* Products Area */}
+            <div className="p-4 lg:px-8 lg:py-10">
+              {/* Search */}
+              <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="relative w-full md:max-w-md">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted" />
+                  <input
+                    type="text"
+                    placeholder="Buscar productos..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  />
+                </div>
+                <div className="hidden md:block">
+                  <button
+                    onClick={() => setCartOpen(true)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    <span className="text-sm font-medium">Ver carrito</span>
+                    {cartCount > 0 && (
+                      <span className="ml-auto px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                        {cartCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
 
-            {/* Products Grid */}
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16 bg-background rounded-2xl">
-                <Package className="w-16 h-16 text-foreground-muted mx-auto mb-4" />
-                <p className="text-foreground-secondary">No se encontraron productos</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-                ))}
-              </div>
-            )}
+              {/* Category Title */}
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-6">{activeCategoryName}</h1>
+
+              {/* Products Grid */}
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-16 bg-background rounded-2xl">
+                  <Package className="w-16 h-16 text-foreground-muted mx-auto mb-4" />
+                  <p className="text-foreground-secondary">No se encontraron productos</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </main>
           </div>
-        </main>
+        </div>
       </div>
 
       {/* Mobile Category Sidebar */}
