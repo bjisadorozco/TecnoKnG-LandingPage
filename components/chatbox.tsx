@@ -45,7 +45,7 @@ export function Chatbox() {
   const [messages, setMessages] = React.useState<Message[]>([
     {
       id: "1",
-      content: "¡Hola! Soy el asistente virtual de DasTech. ¿En qué puedo ayudarte hoy?",
+      content: "¡Hola! Soy el asistente virtual de TecnoKnG. ¿En qué puedo ayudarte hoy?",
       isBot: true,
       timestamp: new Date(),
     },
@@ -70,14 +70,14 @@ export function Chatbox() {
   }, [isOpen])
 
   React.useEffect(() => {
-    const event = new CustomEvent("dastech-chatbox-toggle", {
+    const event = new CustomEvent("TecnoKnG-chatbox-toggle", {
       detail: { open: isOpen },
     })
     window.dispatchEvent(event)
 
     return () => {
       window.dispatchEvent(
-        new CustomEvent("dastech-chatbox-toggle", {
+        new CustomEvent("TecnoKnG-chatbox-toggle", {
           detail: { open: false },
         }),
       )
@@ -152,7 +152,7 @@ export function Chatbox() {
                 <Bot className="w-7 h-7" />
               </div>
               <div>
-                <h3 className="font-semibold">Asistente DasTech</h3>
+                <h3 className="font-semibold">Asistente TecnoKnG</h3>
                 <p className="text-xs text-primary-foreground/70">En línea</p>
               </div>
             </div>

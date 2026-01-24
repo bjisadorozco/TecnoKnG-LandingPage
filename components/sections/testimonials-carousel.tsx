@@ -10,7 +10,7 @@ const testimonials = [
     role: "Emprendedora",
     avatar: "/woman-professional-portrait-smiling.jpg",
     content:
-      "Excelente servicio. Mi laptop tenía problemas graves y DasTech la dejó como nueva en menos de 24 horas. Muy profesional y precios justos.",
+      "Excelente servicio. Mi laptop tenía problemas graves y TecnoKnG la dejó como nueva en menos de 24 horas. Muy profesional y precios justos.",
     rating: 5,
   },
   {
@@ -37,7 +37,7 @@ const testimonials = [
     role: "Contador",
     avatar: "/placeholder.svg?height=80&width=80",
     content:
-      "Mi PC estaba muy lenta y después del mantenimiento que le hizo DasTech funciona mejor que cuando la compré. Muy satisfecho con el resultado.",
+      "Mi PC estaba muy lenta y después del mantenimiento que le hizo TecnoKnG funciona mejor que cuando la compré. Muy satisfecho con el resultado.",
     rating: 5,
   },
 ]

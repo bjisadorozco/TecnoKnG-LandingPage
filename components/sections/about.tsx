@@ -17,7 +17,7 @@ export function AboutSection() {
             <div className="aspect-[4/3] rounded-3xl overflow-hidden">
               <img
                 src="/professional-tech-repair-technician-portrait-frien.jpg"
-                alt="DasTech - Técnico profesional"
+                alt="TecnoKnG - Técnico profesional"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>

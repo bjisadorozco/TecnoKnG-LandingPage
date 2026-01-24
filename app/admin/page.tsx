@@ -47,7 +47,7 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      localStorage.setItem("dastech_admin_auth", "true")
+      localStorage.setItem("TecnoKnG_admin_auth", "true")
       onLogin()
       addToast("Sesión iniciada correctamente", "success")
     } else {
@@ -341,7 +341,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const handleSendNotification = (type: "whatsapp" | "email", phone: string, email?: string, name?: string) => {
     const message = encodeURIComponent(
-      `Hola ${name || ""}! Gracias por contactar a DasTech. He recibido tu solicitud y me pondré en contacto contigo pronto. - DasTech`,
+      `Hola ${name || ""}! Gracias por contactar a TecnoKnG. He recibido tu solicitud y me pondré en contacto contigo pronto. - TecnoKnG`,
     )
 
     if (type === "whatsapp") {
@@ -349,7 +349,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       window.open(`https://wa.me/${cleanPhone}?text=${message}`, "_blank")
       addToast("Abriendo WhatsApp...", "success")
     } else if (type === "email" && email) {
-      const subject = encodeURIComponent("DasTech - Confirmación de solicitud")
+      const subject = encodeURIComponent("TecnoKnG - Confirmación de solicitud")
       window.open(`mailto:${email}?subject=${subject}&body=${message}`, "_blank")
       addToast("Abriendo cliente de correo...", "success")
     }
@@ -926,7 +926,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false)
 
   React.useEffect(() => {
-    const auth = localStorage.getItem("dastech_admin_auth")
+    const auth = localStorage.getItem("TecnoKnG_admin_auth")
     if (auth === "true") {
       setIsAuthenticated(true)
     }
@@ -937,7 +937,7 @@ export default function AdminPage() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("dastech_admin_auth")
+    localStorage.removeItem("TecnoKnG_admin_auth")
     setIsAuthenticated(false)
   }
 

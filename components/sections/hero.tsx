@@ -23,7 +23,7 @@ export function HeroSection() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:pb-10 md:py-0">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-left order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
@@ -32,7 +32,7 @@ export function HeroSection() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight text-balance mb-6">
-              Hola, soy <span className="text-primary">DasTech</span>
+              Hola, soy <span className="text-primary">TecnoKnG</span>
             </h1>
 
             <p className="text-lg text-foreground-secondary leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0 text-pretty">
@@ -79,7 +79,7 @@ export function HeroSection() {
                 <div className="w-full h-full rounded-[22px] bg-background flex items-center justify-center overflow-hidden">
                   <img
                     src="/professional-tech-repair-specialist-working-on-lap.jpg"
-                    alt="DasTech - Especialista en reparación tecnológica"
+                    alt="TecnoKnG - Especialista en reparación tecnológica"
                     className="w-full h-full object-cover"
                   />
                 </div>

@@ -15,8 +15,8 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email",
-    value: "contacto@dastech.com",
-    href: "mailto:contacto@dastech.com",
+    value: "contacto@TecnoKnG.com",
+    href: "mailto:contacto@TecnoKnG.com",
   },
   {
     icon: MapPin,

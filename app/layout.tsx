@@ -12,11 +12,11 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 const _inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "DasTech | Servicios Técnicos Profesionales",
+  title: "TecnoKnG | Servicios Técnicos Profesionales",
   description:
     "Servicios técnicos profesionales de reparación y mantenimiento de computadoras, laptops y celulares. Diagnóstico rápido, garantía incluida y atención personalizada.",
   generator: "v0.app",
-  keywords: ["reparación", "computadoras", "laptops", "celulares", "servicio técnico", "tecnología", "DasTech"],
+  keywords: ["reparación", "computadoras", "laptops", "celulares", "servicio técnico", "tecnología", "TecnoKnG"],
   icons: {
     icon: [
       {

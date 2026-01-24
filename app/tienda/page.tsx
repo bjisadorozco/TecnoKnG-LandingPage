@@ -4,7 +4,7 @@ import { Chatbox } from "@/components/chatbox"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Tienda | DasTech - Accesorios y Repuestos",
+  title: "Tienda | TecnoKnG - Accesorios y Repuestos",
   description: "Encuentra los mejores accesorios y repuestos para tus dispositivos. Productos de calidad con garantía.",
 }
 

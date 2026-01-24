@@ -70,7 +70,7 @@ export function Header() {
               <Cpu className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold">
-              Das<span className="text-primary">Tech</span>
+              Tecno<span className="text-primary">KnG</span>
             </span>
           </Link>
 
@@ -115,7 +115,7 @@ export function Header() {
 
               <>
                 <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                  DasTech
+                  TecnoKnG
                 </p>
                 <p className="text-sm font-semibold">Navegación</p>
               </>
@@ -164,7 +164,7 @@ export function Header() {
                 <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
                   <Cpu className="w-4 h-4 text-primary-foreground" />
                 </div>
-                <span className="font-semibold">DasTech</span>
+                <span className="font-semibold">TecnoKnG</span>
               </Link>
 
               {/* Toggle SOLO aquí */}

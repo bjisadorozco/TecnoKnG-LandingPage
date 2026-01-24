@@ -34,7 +34,7 @@ export function Footer() {
                 <Cpu className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold">
-                Das<span className="text-primary">Tech</span>
+                Tecno<span className="text-primary">KnG</span>
               </span>
             </Link>
             <p className="text-background/70 leading-relaxed max-w-md">
@@ -76,11 +76,11 @@ export function Footer() {
                 +1 (555) 123-4567
               </a>
               <a
-                href="mailto:contacto@dastech.com"
+                href="mailto:contacto@TecnoKnG.com"
                 className="flex items-center gap-2 text-background/70 hover:text-primary transition-colors text-sm"
               >
                 <Mail className="w-4 h-4" />
-                contacto@dastech.com
+                contacto@TecnoKnG.com
               </a>
               <div className="flex items-center gap-2 text-background/70 text-sm">
                 <MapPin className="w-4 h-4" />
@@ -139,7 +139,7 @@ export function Footer() {
 
           {/* Copyright */}
           <p className="text-background/50 text-sm mt-6 text-center md:text-left">
-            © {new Date().getFullYear()} DasTech. Todos los derechos reservados.
+            © {new Date().getFullYear()} TecnoKnG. Todos los derechos reservados.
           </p>
         </div>
       </div>

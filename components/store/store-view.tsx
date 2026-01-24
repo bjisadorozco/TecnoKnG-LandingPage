@@ -305,7 +305,7 @@ function MobileCategorySidebar({
       >
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center justify-between mb-8">
-            <span className="text-xl font-bold text-primary-foreground">DasTech</span>
+            <span className="text-xl font-bold text-primary-foreground">TecnoKnG</span>
             <button
               onClick={onClose}
               className="w-10 h-10 rounded-xl bg-primary-foreground/10 flex items-center justify-center text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
@@ -350,7 +350,7 @@ function MobileCategorySidebar({
             )}
           </button>
 
-          <p className="text-primary-foreground/50 text-xs mt-6">© 2026 DasTech</p>
+          <p className="text-primary-foreground/50 text-xs mt-6">© 2026 TecnoKnG</p>
         </div>
       </aside>
     </>
@@ -401,7 +401,7 @@ export function StoreView() {
               <ChevronLeft className="w-4 h-4" />
               <span className="text-sm">Volver</span>
             </Link>
-            <span className="text-2xl font-bold text-primary-foreground">DasTech</span>
+            <span className="text-2xl font-bold text-primary-foreground">TecnoKnG</span>
           </div> */}
 
           <nav className="flex-1 px-4 space-y-1 pt-2">
@@ -435,7 +435,7 @@ export function StoreView() {
               )}
             </button>
           </div>
-            <p className="text-primary-foreground/50 text-md mb-6 text-center">© 2026 DasTech</p>
+            <p className="text-primary-foreground/50 text-md mb-6 text-center">© 2026 TecnoKnG</p>
         </aside>
 
         {/* Main Content */}
@@ -444,7 +444,7 @@ export function StoreView() {
           <div className="lg:hidden sticky top-0 z-40 bg-background border-b border-border">
             <div className="flex items-center justify-between p-4 gap-3">
               <Link href="/" className="text-lg font-bold text-foreground flex-shrink-0">
-                Das<span className="text-primary">Tech</span>
+                Tecno<span className="text-primary">KnG</span>
               </Link>
               <button
                 onClick={() => setMobileSidebarOpen(true)}
