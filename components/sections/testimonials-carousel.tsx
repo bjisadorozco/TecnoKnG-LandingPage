@@ -84,7 +84,7 @@ export function TestimonialsCarousel() {
   }, [isAutoPlaying, nextSlide])
 
   return (
-    <section id="resenas" className="py-20 md:py-9 bg-background overflow-hidden">
+    <section id="resenas" className="py-10 md:py-9 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
