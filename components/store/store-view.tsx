@@ -15,6 +15,7 @@ import {
   MonitorSmartphone,
   Search,
   ChevronLeft,
+  Shield,
 } from "lucide-react"
 import Link from "next/link"
 import { useStore, type Product } from "@/lib/store-context"
@@ -397,7 +398,8 @@ export function StoreView() {
         <div className="pointer-events-none hidden lg:block absolute inset-y-0 left-0 w-28 bg-gradient-to-r from-background-secondary via-background/80 to-transparent backdrop-blur-[12px] opacity-90 z-10" />
         <div className="pointer-events-none hidden lg:block absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-background-secondary via-background/80 to-transparent backdrop-blur-[12px] opacity-90 z-10" />
 
-        <div className="relative z-20 px-4 py-4 lg:px-6 lg:py-0 lg:max-w-7xl lg:mx-auto">
+        {/* <div className="relative z-20 px-4 py-4 lg:px-6 lg:py-0 lg:max-w-7xl lg:mx-auto"> */}
+          <div className="relative z-20 px-4 py-4 lg:px-0 lg:py-0 lg:mx-auto">
           <div className="flex min-h-screen gap-6 lg:gap-0">
           {/* Desktop Sidebar */}
           <aside className="hidden lg:flex flex-col w-64 bg-gradient-to-b from-primary via-primary to-primary/90 sticky top-0 h-screen">
@@ -435,17 +437,26 @@ export function StoreView() {
                   <Package className="w-5 h-5" />
                   <span>Categorías</span>
                 </button>
-                <button
-                  onClick={() => setCartOpen(true)}
-                  className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error text-white text-xs font-bold flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setCartOpen(true)}
+                    className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error text-white text-xs font-bold flex items-center justify-center">
+                        {cartCount}
+                      </span>
+                    )}
+                  </button>
+                  <Link
+                    href="/admin"
+                    className="w-10 h-10 rounded-xl border border-border text-foreground flex items-center justify-center bg-background-secondary hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span className="sr-only">Panel administrativo</span>
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -463,7 +474,7 @@ export function StoreView() {
                     className="w-full pl-12 pr-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
-                <div className="hidden md:block">
+                <div className="hidden md:flex items-center gap-3">
                   <button
                     onClick={() => setCartOpen(true)}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
@@ -476,6 +487,13 @@ export function StoreView() {
                       </span>
                     )}
                   </button>
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl border border-border text-foreground bg-background-secondary hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span className="text-sm font-medium">Panel admin</span>
+                  </Link>
                 </div>
               </div>
 
