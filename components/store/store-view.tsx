@@ -334,7 +334,7 @@ function MobileCategorySidebar({
             ))}
           </nav>
 
-          <button
+          {/* <button
             onClick={() => {
               onOpenCart()
               onClose()
@@ -348,9 +348,9 @@ function MobileCategorySidebar({
                 {cartCount}
               </span>
             )}
-          </button>
+          </button> */}
 
-          <p className="text-primary-foreground/50 text-xs mt-6">© 2026 TecnoKnG</p>
+          <p className="text-primary-foreground/50 text-xs mb-15 lg:mb-0 mt-6">© 2026 TecnoKnG</p>
         </div>
       </aside>
     </>
