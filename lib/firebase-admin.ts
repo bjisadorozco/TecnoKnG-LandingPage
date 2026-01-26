@@ -2,44 +2,35 @@ import { getApps, initializeApp, cert, getApp } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
 import { getAuth } from "firebase-admin/auth"
 
-function assertServerEnv() {
-  if (typeof window !== "undefined") {
-    throw new Error("firebase-admin solo debe inicializarse en el servidor.")
+function getFirebaseAdminApp() {
+  if (getApps().length > 0) {
+    return getApp()
   }
 
-  const required = {
-    FIREBASE_ADMIN_PROJECT_ID: process.env.FIREBASE_ADMIN_PROJECT_ID,
-    FIREBASE_ADMIN_CLIENT_EMAIL: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-    FIREBASE_ADMIN_PRIVATE_KEY: process.env.FIREBASE_ADMIN_PRIVATE_KEY,
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error("Firebase Admin env vars missing")
   }
 
-  const missing = Object.entries(required)
-    .filter(([, value]) => !value)
-    .map(([key]) => key)
+  const formattedKey = privateKey
+    .replace(/\\n/g, "\n")
+    .replace(/-----BEGIN PRIVATE KEY-----/g, "-----BEGIN PRIVATE KEY-----\n")
+    .replace(/-----END PRIVATE KEY-----/g, "\n-----END PRIVATE KEY-----")
+    .trim()
 
-  if (missing.length) {
-    throw new Error(`Variables de entorno faltantes para Firebase Admin: ${missing.join(", ")}`)
-  }
+  return initializeApp({
+    credential: cert({
+      projectId,
+      clientEmail,
+      privateKey: formattedKey,
+    }),
+  })
 }
 
-assertServerEnv()
+const adminApp = getFirebaseAdminApp()
 
-// Intentar usar la private key directamente con mejor manejo de saltos de línea
-const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY!
-  .replace(/\\n/g, '\n')
-  .replace(/-----BEGIN PRIVATE KEY-----/g, '-----BEGIN PRIVATE KEY-----\n')
-  .replace(/-----END PRIVATE KEY-----/g, '\n-----END PRIVATE KEY-----')
-  .trim()
-
-const serviceAccount = {
-  projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-  clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-  privateKey: privateKey,
-}
-
-const firebaseAdminApp = getApps().length > 0 ? getApp() : initializeApp({
-  credential: cert(serviceAccount as Parameters<typeof cert>[0]),
-})
-
-export const adminDb = getFirestore(firebaseAdminApp)
-export const adminAuth = getAuth(firebaseAdminApp)
+export const adminDb = getFirestore(adminApp)
+export const adminAuth = getAuth(adminApp)
