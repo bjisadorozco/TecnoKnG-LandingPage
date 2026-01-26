@@ -1,15 +1,14 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono, Inter } from "next/font/google"
+import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { StoreProvider } from "@/lib/store-context"
+import { AuthProvider } from "@/lib/auth-context"
 import { ToastProvider } from "@/components/ui/toast"
 import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
-const _inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "TecnoKnG | Servicios Técnicos Profesionales",
@@ -54,11 +53,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className="font-sans antialiased">
+      <body className={`${inter.className} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <StoreProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </StoreProvider>
+          <AuthProvider>
+            <StoreProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </StoreProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Analytics />
       </body>

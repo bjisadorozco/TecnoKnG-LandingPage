@@ -367,7 +367,7 @@ export function StoreView() {
   const { addToast } = useToast()
 
   const filteredProducts = React.useMemo(() => {
-    let filtered = products
+    let filtered = Array.isArray(products) ? products : []
     if (activeCategory !== "all") {
       filtered = filtered.filter((p) => p.category === activeCategory)
     }

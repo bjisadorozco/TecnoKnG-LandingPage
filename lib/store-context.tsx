@@ -175,6 +175,7 @@ interface StoreContextType {
   addProduct: (product: Omit<Product, "id">) => void
   updateProductStock: (productId: string, stock: number) => void
   toggleProductAvailability: (productId: string) => void
+  deleteProduct: (productId: string) => void
   orders: OrderRequest[]
   addOrder: (order: Omit<OrderRequest, "id" | "createdAt" | "status">) => void
   updateOrderStatus: (orderId: string, status: OrderRequest["status"]) => void
@@ -187,9 +188,38 @@ const StoreContext = React.createContext<StoreContextType | undefined>(undefined
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = React.useState<CartItem[]>([])
-  const [products, setProducts] = React.useState<Product[]>(initialProducts)
+  const [products, setProducts] = React.useState<Product[]>([])
   const [orders, setOrders] = React.useState<OrderRequest[]>([])
   const [contactMessages, setContactMessages] = React.useState<ContactMessage[]>([])
+
+  // Load initial data from API
+  React.useEffect(() => {
+    Promise.all([
+      fetch("/api/products").then((r) => r.json()),
+      fetch("/api/orders").then((r) => r.json()),
+      fetch("/api/messages").then((r) => r.json()),
+    ])
+      .then(([productsData, ordersData, messagesData]) => {
+        console.log("Products fetched from API:", productsData)
+        console.log("Type of productsData:", typeof productsData)
+        console.log("Is array?", Array.isArray(productsData))
+        
+        // Asegurarse de que productsData sea un array
+        const productsArray = Array.isArray(productsData) ? productsData : []
+        
+        console.log("Products array:", productsArray)
+        console.log("First product structure:", productsArray[0])
+        
+        if (productsArray.length > 0) {
+          console.log("Product IDs:", productsArray.map(p => ({ id: p.id, name: p.name })))
+        }
+        
+        setProducts(productsArray)
+        setOrders(ordersData)
+        setContactMessages(messagesData)
+      })
+      .catch(console.error)
+  }, [])
 
   const addToCart = React.useCallback((product: Product) => {
     if (!product.available || product.stock <= 0) {
@@ -235,76 +265,94 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setCart([])
   }, [])
 
-  const addOrder = React.useCallback((order: Omit<OrderRequest, "id" | "createdAt" | "status">) => {
-    const newOrder: OrderRequest = {
-      ...order,
-      id: `ORD-${Date.now()}`,
-      status: "pending",
-      createdAt: new Date(),
-    }
-    setOrders((prev) => [newOrder, ...prev])
-    setProducts((prev) =>
-      prev.map((product) => {
-        const item = order.items.find((cartItem) => cartItem.id === product.id)
-        if (!item) return product
-        const updatedStock = Math.max(0, product.stock - item.quantity)
-        return {
-          ...product,
-          stock: updatedStock,
-          available: updatedStock === 0 ? false : product.available,
-        }
-      }),
-    )
+  const addOrder = React.useCallback(async (order: Omit<OrderRequest, "id" | "createdAt" | "status">) => {
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order),
+    })
+    const newOrder = await res.json()
+    setOrders((prev) => [newOrder, ...(Array.isArray(prev) ? prev : [])])
+    return newOrder
   }, [])
 
   const updateOrderStatus = React.useCallback((orderId: string, status: OrderRequest["status"]) => {
-    setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status } : order)))
+    setOrders((prev) => (Array.isArray(prev) ? prev : []).map((order) => (order.id === orderId ? { ...order, status } : order)))
   }, [])
 
-  const addContactMessage = React.useCallback((message: Omit<ContactMessage, "id" | "createdAt" | "status">) => {
-    const newMessage: ContactMessage = {
-      ...message,
-      id: `MSG-${Date.now()}`,
-      status: "pending",
-      createdAt: new Date(),
-    }
-    setContactMessages((prev) => [newMessage, ...prev])
+  const addContactMessage = React.useCallback(async (message: Omit<ContactMessage, "id" | "createdAt" | "status">) => {
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(message),
+    })
+    const newMessage = await res.json()
+    setContactMessages((prev) => [newMessage, ...(Array.isArray(prev) ? prev : [])])
+    return newMessage
   }, [])
 
   const updateMessageStatus = React.useCallback((messageId: string, status: ContactMessage["status"]) => {
-    setContactMessages((prev) => prev.map((msg) => (msg.id === messageId ? { ...msg, status } : msg)))
+    setContactMessages((prev) => (Array.isArray(prev) ? prev : []).map((msg) => (msg.id === messageId ? { ...msg, status } : msg)))
   }, [])
 
   const cartTotal = React.useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart])
 
   const cartCount = React.useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart])
 
-  const addProduct = React.useCallback((product: Omit<Product, "id">) => {
-    const newProduct: Product = {
-      ...product,
-      id: `PRD-${Date.now()}`,
+  const addProduct = React.useCallback(async (product: Omit<Product, "id">) => {
+    const res = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(product),
+    })
+    const newProduct = await res.json()
+    setProducts((prev) => [newProduct, ...(Array.isArray(prev) ? prev : [])])
+    return newProduct
+  }, [])
+
+  const updateProductStock = React.useCallback(async (productId: string, stock: number) => {
+    const res = await fetch(`/api/products/${productId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stock }),
+    })
+    const updated = await res.json()
+    setProducts((prev) => (Array.isArray(prev) ? prev : []).map((p) => (p.id === productId ? updated : p)))
+    return updated
+  }, [])
+
+  const toggleProductAvailability = React.useCallback(async (productId: string) => {
+    const current = (Array.isArray(products) ? products : []).find((p) => p.id === productId)
+    if (!current) return
+
+    const res = await fetch(`/api/products/${productId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ available: !current.available }),
+    })
+    const updated = await res.json()
+    setProducts((prev) => (Array.isArray(prev) ? prev : []).map((p) => (p.id === productId ? updated : p)))
+    return updated
+  }, [products])
+
+  const deleteProduct = React.useCallback(async (productId: string) => {
+    console.log("deleteProduct called with productId:", productId)
+    
+    if (!productId) {
+      console.error("Product ID is undefined or empty in deleteProduct")
+      throw new Error("ID de producto inválido")
     }
-    setProducts((prev) => [newProduct, ...prev])
-  }, [])
 
-  const updateProductStock = React.useCallback((productId: string, stock: number) => {
-    setProducts((prev) =>
-      prev.map((product) => {
-        if (product.id !== productId) return product
-        const safeStock = Math.max(0, stock)
-        return {
-          ...product,
-          stock: safeStock,
-          available: safeStock === 0 ? false : product.available,
-        }
-      }),
-    )
-  }, [])
-
-  const toggleProductAvailability = React.useCallback((productId: string) => {
-    setProducts((prev) =>
-      prev.map((product) => (product.id === productId ? { ...product, available: !product.available } : product)),
-    )
+    const res = await fetch(`/api/products/${productId}`, {
+      method: "DELETE",
+    })
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}))
+      throw new Error(errorData.details || errorData.error || "Error al eliminar producto")
+    }
+    
+    setProducts((prev) => (Array.isArray(prev) ? prev : []).filter((p) => p.id !== productId))
   }, [])
 
   return (
@@ -321,6 +369,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         addProduct,
         updateProductStock,
         toggleProductAvailability,
+        deleteProduct,
         orders,
         addOrder,
         updateOrderStatus,

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   ChevronLeft,
   Package,
@@ -10,24 +11,20 @@ import {
   Phone,
   Mail,
   ShoppingBag,
-  Lock,
-  Eye,
-  EyeOff,
-  User,
-  CheckCircle2,
-  Circle,
-  ArrowRight,
-  Send,
   Plus,
   X,
   LogOut,
+  Upload,
+  Trash2,
+  Send,
+  Circle,
+  CheckCircle2,
+  ArrowRight,
 } from "lucide-react"
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
+import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/components/ui/toast"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-
-const ADMIN_USERNAME = "admin"
-const ADMIN_PASSWORD = "admin123"
 
 const productCategories = [
   { id: "accessories", label: "Accesorios" },
@@ -37,99 +34,37 @@ const productCategories = [
   { id: "screens", label: "Pantallas" },
 ]
 
-function LoginForm({ onLogin }: { onLogin: () => void }) {
-  const [username, setUsername] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [error, setError] = React.useState("")
-  const { addToast } = useToast()
+function AdminPage() {
+  const { user, loading, logout, isAdmin } = useAuth()
+  const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      localStorage.setItem("TecnoKnG_admin_auth", "true")
-      onLogin()
-      addToast("Sesión iniciada correctamente", "success")
-    } else {
-      setError("Usuario o contraseña incorrectos")
-      addToast("Credenciales incorrectas", "error")
+  // Redirigir al login si no está autenticado o no es admin
+  React.useEffect(() => {
+    if (!loading) {
+      if (!user || !isAdmin) {
+        router.push('/admin/login')
+      }
     }
-  }
+  }, [user, loading, isAdmin, router])
 
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Panel de Administración</h1>
-          <p className="text-foreground-secondary mt-2">Ingresa tus credenciales para continuar</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Usuario</label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted" />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value)
-                  setError("")
-                }}
-                className={`w-full px-4 py-3 pl-12 rounded-xl bg-background-secondary border ${
-                  error ? "border-error" : "border-border"
-                } text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
-                placeholder="admin"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Contraseña</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted" />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  setError("")
-                }}
-                className={`w-full px-4 py-3 pl-12 pr-12 rounded-xl bg-background-secondary border ${
-                  error ? "border-error" : "border-border"
-                } text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            {error && <p className="text-error text-sm mt-2">{error}</p>}
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors"
-          >
-            Ingresar
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-primary hover:underline text-sm">
-            Volver al sitio
-          </Link>
+  // Mostrar loading mientras se verifica la autenticación
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-foreground">Verificando autenticación...</p>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
+
+  // Si no está autenticado o no es admin, no renderizar nada (la redirección se encargará)
+  if (!user || !isAdmin) {
+    return null
+  }
+
+  return <AdminDashboard onLogout={logout} />
 }
 
 function KanbanOrderCard({
@@ -302,19 +237,20 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     addProduct,
     updateProductStock,
     toggleProductAvailability,
+    deleteProduct,
   } = useStore()
   const { addToast } = useToast()
 
   const ordersByStatus = {
-    pending: orders.filter((o) => o.status === "pending"),
-    contacted: orders.filter((o) => o.status === "contacted"),
-    completed: orders.filter((o) => o.status === "completed"),
+    pending: (Array.isArray(orders) ? orders : []).filter((o) => o.status === "pending"),
+    contacted: (Array.isArray(orders) ? orders : []).filter((o) => o.status === "contacted"),
+    completed: (Array.isArray(orders) ? orders : []).filter((o) => o.status === "completed"),
   }
 
   const messagesByStatus = {
-    pending: contactMessages.filter((m) => m.status === "pending"),
-    read: contactMessages.filter((m) => m.status === "read"),
-    replied: contactMessages.filter((m) => m.status === "replied"),
+    pending: (Array.isArray(contactMessages) ? contactMessages : []).filter((m) => m.status === "pending"),
+    read: (Array.isArray(contactMessages) ? contactMessages : []).filter((m) => m.status === "read"),
+    replied: (Array.isArray(contactMessages) ? contactMessages : []).filter((m) => m.status === "replied"),
   }
 
   const handleMoveOrder = (orderId: string, currentStatus: OrderRequest["status"]) => {
@@ -357,7 +293,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const totalPendingOrders = ordersByStatus.pending.length
   const totalPendingMessages = messagesByStatus.pending.length
-  const lowStockProducts = products.filter((product) => product.stock <= 3)
+  const lowStockProducts = (Array.isArray(products) ? products : []).filter((product) => product.stock <= 3)
 
   const resetProductForm = React.useCallback(() => {
     setProductForm({
@@ -414,6 +350,60 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const handleToggleAvailability = (productId: string) => {
     toggleProductAvailability(productId)
+  }
+
+  const handleDeleteProduct = async (productId: string) => {
+    console.log("handleDeleteProduct called with productId:", productId)
+    
+    if (!productId) {
+      console.error("Product ID is undefined or empty")
+      addToast("Error: ID de producto inválido", "error")
+      return
+    }
+
+    if (!confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) {
+      return
+    }
+
+    try {
+      console.log("Calling deleteProduct with ID:", productId)
+      await deleteProduct(productId)
+      addToast("Producto eliminado correctamente", "success")
+    } catch (error) {
+      console.error("Error deleting product:", error)
+      addToast(`Error al eliminar producto: ${error instanceof Error ? error.message : 'Error desconocido'}`, "error")
+    }
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file size (max 5MB for mobile compatibility)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("La imagen es demasiado grande. Máximo 5MB.")
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert("Por favor selecciona un archivo de imagen válido.")
+      return
+    }
+
+    // Show loading state
+    handleProductInputChange("image", "loading...")
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const result = reader.result as string
+      handleProductInputChange("image", result)
+    }
+    reader.onerror = () => {
+      alert("Error al leer la imagen. Intenta de nuevo.")
+      handleProductInputChange("image", "")
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -738,12 +728,17 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {products.length === 0 ? (
+            {(!Array.isArray(products) || products.length === 0) ? (
               <p className="col-span-full text-center text-foreground-muted text-sm">Aún no hay productos registrados.</p>
             ) : (
-              products.map((product) => (
+              products.map((product, index) => {
+                // Simple log to check if products have IDs
+                if (!product.id) {
+                  console.warn(`Product at index ${index} has no ID:`, product)
+                }
+                return (
                 <div
-                  key={product.id}
+                  key={product.id || `product-${index}`}
                   className="p-4 rounded-2xl bg-background-secondary border border-border flex flex-col gap-4">
                   <div className="flex flex-col sm:flex-row items-start gap-3">
                     <div className="w-14 h-14 rounded-xl overflow-hidden bg-background">
@@ -759,7 +754,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
                   <p className="text-sm text-foreground-secondary line-clamp-3 min-h-[3.5rem]">{product.description}</p>
 
-                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4">
                     <div className="flex flex-wrap items-start gap-4">
                       <div className="min-w-[120px] flex flex-col gap-1">
                         <p className="text-xs text-foreground-muted">Precio</p>
@@ -779,29 +774,51 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleToggleAvailability(product.id)}
-                      className={`w-full px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                        product.available
-                          ? "bg-primary/10 text-primary hover:bg-primary/20"
-                          : "bg-foreground/10 text-foreground hover:bg-foreground/20"
-                      }`}
-                    >
-                      {product.available ? "Disponible" : "Pausado"}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleToggleAvailability(product.id)}
+                        className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          product.available
+                            ? "bg-primary/10 text-primary hover:bg-primary/20"
+                            : "bg-foreground/10 text-foreground hover:bg-foreground/20"
+                        }`}
+                      >
+                        {product.available ? "Disponible" : "Pausado"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!product.id) {
+                            console.error("Product has no ID:", product)
+                            addToast("Error: Producto sin ID válido", "error")
+                            return
+                          }
+                          handleDeleteProduct(product.id)
+                        }}
+                        disabled={!product.id}
+                        className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          !product.id 
+                            ? "bg-foreground/5 text-foreground-muted cursor-not-allowed" 
+                            : "bg-error/10 text-error hover:bg-error/20"
+                        }`}
+                        title={product.id ? "Eliminar producto" : "Producto sin ID válido"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              ))
+                )
+              })
             )}
           </div>
         </section>
       </main>
 
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={closeProductModal} />
-          <div className="relative z-10 w-full max-w-xl bg-background rounded-2xl shadow-2xl border border-border p-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-start justify-between gap-4">
+          <div className="relative z-10 w-full max-w-2xl bg-background rounded-2xl shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
               <div>
                 <p className="text-sm text-foreground-muted">Nuevo producto</p>
                 <h3 className="text-2xl font-bold text-foreground">Registrar producto</h3>
@@ -815,117 +832,152 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               </button>
             </div>
 
-            <form onSubmit={handleProductSubmit} className="mt-6 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+              <form onSubmit={handleProductSubmit} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Nombre</label>
+                    <input
+                      type="text"
+                      value={productForm.name}
+                      onChange={(e) => handleProductInputChange("name", e.target.value)}
+                      required
+                      className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                      placeholder="Nombre del producto"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Precio</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={productForm.price}
+                      onChange={(e) => handleProductInputChange("price", e.target.value)}
+                      required
+                      className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="text-sm font-medium text-foreground">Nombre</label>
-                  <input
-                    type="text"
-                    value={productForm.name}
-                    onChange={(e) => handleProductInputChange("name", e.target.value)}
-                    required
+                  <label className="text-sm font-medium text-foreground">Descripción</label>
+                  <textarea
+                    value={productForm.description}
+                    onChange={(e) => handleProductInputChange("description", e.target.value)}
+                    rows={3}
                     className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
-                    placeholder="Nombre del producto"
+                    placeholder="Cuéntale al cliente por qué este producto es especial"
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground">Precio</label>
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={productForm.price}
-                    onChange={(e) => handleProductInputChange("price", e.target.value)}
-                    required
-                    className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
-                    placeholder="0.00"
-                  />
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Categoría</label>
+                    <select
+                      value={productForm.category}
+                      onChange={(e) => handleProductInputChange("category", e.target.value)}
+                      className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                    >
+                      {productCategories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Stock</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={productForm.stock}
+                      onChange={(e) => handleProductInputChange("stock", e.target.value)}
+                      className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-sm font-medium text-foreground">Descripción</label>
-                <textarea
-                  value={productForm.description}
-                  onChange={(e) => handleProductInputChange("description", e.target.value)}
-                  rows={3}
-                  className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
-                  placeholder="Cuéntale al cliente por qué este producto es especial"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-foreground">Imagen (URL)</label>
-                <input
-                  type="url"
-                  value={productForm.image}
-                  onChange={(e) => handleProductInputChange("image", e.target.value)}
-                  required
-                  className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-foreground">Categoría</label>
-                  <select
-                    value={productForm.category}
-                    onChange={(e) => handleProductInputChange("category", e.target.value)}
-                    className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                  <label className="text-sm font-medium text-foreground">Imagen</label>
+                  <div className="mt-1 space-y-2">
+                    <div className="flex gap-3 items-center">
+                      <label className="px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm cursor-pointer hover:bg-background transition-colors flex items-center gap-2">
+                        <Upload className="w-4 h-4 text-foreground-muted" />
+                        <span className="text-foreground-muted">
+                          {productForm.image ? "Cambiar imagen" : "Subir imagen"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      
+                      {/* Vista previa más grande */}
+                      {productForm.image && productForm.image !== "loading..." && (
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-background-secondary border border-border flex-shrink-0">
+                          <img 
+                            src={productForm.image} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover" 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleProductInputChange("image", "")}
+                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-error text-white flex items-center justify-center hover:bg-error/90 transition-colors shadow-lg"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* Estado de carga más grande */}
+                      {productForm.image === "loading..." && (
+                        <div className="w-16 h-16 rounded-lg bg-background-secondary border border-border flex items-center justify-center flex-shrink-0">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between rounded-2xl border border-border p-4">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Disponibilidad</p>
+                    <p className="text-xs text-foreground-muted">Controla si el producto aparece en la tienda</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleProductInputChange("available", !productForm.available)}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      productForm.available ? "bg-primary/10 text-primary" : "bg-foreground/10 text-foreground"
+                    }`}
                   >
-                    {productCategories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.label}
-                      </option>
-                    ))}
-                  </select>
+                    {productForm.available ? "Activo" : "Pausado"}
+                  </button>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground">Stock</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={productForm.stock}
-                    onChange={(e) => handleProductInputChange("stock", e.target.value)}
-                    className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between rounded-2xl border border-border p-4">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Disponibilidad</p>
-                  <p className="text-xs text-foreground-muted">Controla si el producto aparece en la tienda</p>
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-4">
+                  <button
+                    type="button"
+                    onClick={closeProductModal}
+                    className="w-full sm:w-auto px-4 py-3 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-foreground"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover"
+                  >
+                    Registrar producto
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleProductInputChange("available", !productForm.available)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    productForm.available ? "bg-primary/10 text-primary" : "bg-foreground/10 text-foreground"
-                  }`}
-                >
-                  {productForm.available ? "Activo" : "Pausado"}
-                </button>
-              </div>
-
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={closeProductModal}
-                  className="w-full sm:w-auto px-4 py-3 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-foreground"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover"
-                >
-                  Registrar producto
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -933,28 +985,4 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   )
 }
 
-export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
-
-  React.useEffect(() => {
-    const auth = localStorage.getItem("TecnoKnG_admin_auth")
-    if (auth === "true") {
-      setIsAuthenticated(true)
-    }
-  }, [])
-
-  const handleLogin = () => {
-    setIsAuthenticated(true)
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem("TecnoKnG_admin_auth")
-    setIsAuthenticated(false)
-  }
-
-  if (!isAuthenticated) {
-    return <LoginForm onLogin={handleLogin} />
-  }
-
-  return <AdminDashboard onLogout={handleLogout} />
-}
+export default AdminPage
