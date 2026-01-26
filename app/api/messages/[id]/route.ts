@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAdminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
+    const adminDb = getAdminDb() // ✅ ESTA LÍNEA FALTABA
+
     const { id } = params
     const payload = await req.json()
 
@@ -11,7 +19,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const existing = await messageRef.get()
 
     if (!existing.exists) {
-      return NextResponse.json({ error: "Mensaje no encontrado" }, { status: 404 })
+      return NextResponse.json(
+        { error: "Mensaje no encontrado" },
+        { status: 404 }
+      )
     }
 
     const updates: Record<string, any> = {
@@ -39,6 +50,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     })
   } catch (error) {
     console.error("PATCH /api/messages/[id] error", error)
-    return NextResponse.json({ error: "Error al actualizar mensaje" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Error al actualizar mensaje" },
+      { status: 500 }
+    )
   }
 }

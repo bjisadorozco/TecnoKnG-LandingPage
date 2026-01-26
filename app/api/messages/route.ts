@@ -19,40 +19,35 @@ function mapDoc(doc: any): ContactMessage {
 
 export async function GET() {
   try {
-    console.log("GET /api/messages - Starting...")
-    console.log("Environment check:", {
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID ? "set" : "missing",
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL ? "set" : "missing",
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY ? "set" : "missing",
-    })
-    
-    const snapshot = await adminDb.collection("messages").orderBy("createdAt", "desc").get()
-    console.log("Messages fetched from Firestore:", snapshot.docs.length)
-    
+    const adminDb = getAdminDb() 
+
+    const snapshot = await adminDb
+      .collection("messages")
+      .orderBy("createdAt", "desc")
+      .get()
+
     const messages = snapshot.docs.map(mapDoc)
-    console.log("Messages mapped:", messages.length)
-    
     return NextResponse.json(messages)
   } catch (error) {
     console.error("GET /api/messages error:", error)
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-    return NextResponse.json({ 
-      error: "Error al obtener mensajes",
-      details: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 })
+    return NextResponse.json(
+      { error: "Error al obtener mensajes" },
+      { status: 500 }
+    )
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const payload = await req.json()
-    const { name, email, phone, service, message } = payload
+    const adminDb = getAdminDb() 
+
+    const { name, email, phone, service, message } = await req.json()
 
     if (!name || !email || !phone || !service || !message) {
-      return NextResponse.json({ error: "Campos obligatorios inválidos" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Campos obligatorios inválidos" },
+        { status: 400 }
+      )
     }
 
     const docRef = await adminDb.collection("messages").add({
@@ -67,13 +62,12 @@ export async function POST(req: NextRequest) {
     })
 
     const created = await docRef.get()
-    if (!created.exists) {
-      return NextResponse.json({ error: "No se pudo obtener el mensaje creado" }, { status: 500 })
-    }
-
     return NextResponse.json(mapDoc(created))
   } catch (error) {
     console.error("POST /api/messages error", error)
-    return NextResponse.json({ error: "Error al crear mensaje" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Error al crear mensaje" },
+      { status: 500 }
+    )
   }
 }
