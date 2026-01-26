@@ -10,7 +10,7 @@ function assertServerEnv() {
   const required = {
     FIREBASE_ADMIN_PROJECT_ID: process.env.FIREBASE_ADMIN_PROJECT_ID,
     FIREBASE_ADMIN_CLIENT_EMAIL: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-    FIREBASE_ADMIN_PRIVATE_KEY_BASE64: process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64,
+    FIREBASE_ADMIN_PRIVATE_KEY: process.env.FIREBASE_ADMIN_PRIVATE_KEY,
   }
 
   const missing = Object.entries(required)
@@ -24,13 +24,17 @@ function assertServerEnv() {
 
 assertServerEnv()
 
-// Decodificar la private key desde Base64
-const privateKeyDecoded = Buffer.from(process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64!, 'base64').toString('utf8')
+// Intentar usar la private key directamente con mejor manejo de saltos de línea
+const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY!
+  .replace(/\\n/g, '\n')
+  .replace(/-----BEGIN PRIVATE KEY-----/g, '-----BEGIN PRIVATE KEY-----\n')
+  .replace(/-----END PRIVATE KEY-----/g, '\n-----END PRIVATE KEY-----')
+  .trim()
 
 const serviceAccount = {
   projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
   clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-  privateKey: privateKeyDecoded,
+  privateKey: privateKey,
 }
 
 const firebaseAdminApp = getApps().length > 0 ? getApp() : initializeApp({
