@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
 import { useAuth } from "@/lib/auth-context"
-import { useToast } from "@/components/ui/toast"
+import { useToast } from "@/hooks/use-toast"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const productCategories = [

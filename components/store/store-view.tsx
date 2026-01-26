@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useStore, type Product } from "@/lib/store-context"
-import { useToast } from "@/components/ui/toast"
+import { useToast } from "@/hooks/use-toast"
 
 const categories = [
   { id: "all", name: "Todos los productos", icon: Package },

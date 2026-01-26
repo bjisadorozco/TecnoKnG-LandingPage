@@ -3,16 +3,16 @@
 // Inspired by react-hot-toast library
 import * as React from 'react'
 
-import type { ToastActionElement, ToastProps } from '@/components/ui/toast'
-
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToast = ToastProps & {
+type ToasterToast = {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: ToastActionElement
+  action?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const actionTypes = {
@@ -181,9 +181,31 @@ function useToast() {
     }
   }, [state])
 
+  const addToast = React.useCallback((message: string, type: "success" | "error" | "info" = "info") => {
+    const id = `toast-${Date.now()}`
+    
+    dispatch({
+      type: 'ADD_TOAST',
+      toast: {
+        id,
+        title: type === "success" ? "Éxito" : type === "error" ? "Error" : "Información",
+        description: message,
+        open: true,
+        onOpenChange: (open) => {
+          if (!open) dispatch({ type: 'DISMISS_TOAST', toastId: id })
+        },
+      },
+    })
+
+    setTimeout(() => {
+      dispatch({ type: 'DISMISS_TOAST', toastId: id })
+    }, 4000)
+  }, [])
+
   return {
     ...state,
     toast,
+    addToast,
     dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
   }
 }

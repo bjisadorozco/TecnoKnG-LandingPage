@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from "lucide-react"
 import { useStore } from "@/lib/store-context"
-import { useToast } from "@/components/ui/toast"
+import { useToast } from "@/hooks/use-toast"
 
 const contactInfo = [
   {
