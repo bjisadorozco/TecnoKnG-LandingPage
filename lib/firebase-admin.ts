@@ -1,11 +1,10 @@
-import { getApps, initializeApp, cert } from "firebase-admin/app"
+// lib/firebase-admin.ts
+import { getApps, getApp, initializeApp, cert } from "firebase-admin/app"
 import { getAuth } from "firebase-admin/auth"
 import { getFirestore } from "firebase-admin/firestore"
 
 function getAdminApp() {
-  if (getApps().length > 0) {
-    return getApps()[0]
-  }
+  if (getApps().length) return getApp()
 
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL
@@ -24,7 +23,6 @@ function getAdminApp() {
   })
 }
 
-// 👇 NO ejecutes nada aquí
 export function getAdminAuth() {
   return getAuth(getAdminApp())
 }

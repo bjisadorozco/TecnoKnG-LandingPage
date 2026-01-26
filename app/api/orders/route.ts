@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { adminDb } from "@/lib/firebase-admin"
+import { getAdminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
 import type { OrderRequest } from "@/lib/store-context"
 
