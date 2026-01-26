@@ -19,35 +19,25 @@ function mapDoc(doc: any): Product {
 
 export async function GET() {
   try {
-    console.log("GET /api/products - Starting...")
-    console.log("Environment check:", {
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID ? "set" : "missing",
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL ? "set" : "missing",
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY ? "set" : "missing",
-    })
-    
-    const snapshot = await adminDb.collection("products").orderBy("createdAt", "desc").get()
-    console.log("Products fetched from Firestore:", snapshot.docs.length)
-    
+    const adminDb = getAdminDb()
+
+    const snapshot = await adminDb
+      .collection("products")
+      .orderBy("createdAt", "desc")
+      .get()
+
     const products = snapshot.docs.map(mapDoc)
-    console.log("Products mapped:", products.length)
-    
     return NextResponse.json(products)
   } catch (error) {
-    console.error("GET /api/products error:", error)
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-    return NextResponse.json({ 
-      error: "Error al obtener productos",
-      details: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 })
+    console.error("GET /api/products error", error)
+    return NextResponse.json({ error: "Error al obtener productos" }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const adminDb = getAdminDb()
+
     const payload = await req.json()
     const { name, description, price, image, category, stock, available } = payload
 

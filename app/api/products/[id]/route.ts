@@ -4,23 +4,21 @@ import { FieldValue } from "firebase-admin/firestore"
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const adminDb = getAdminDb()
+    const { id } = params
     const payload = await req.json()
 
     const productRef = adminDb.collection("products").doc(id)
     const existing = await productRef.get()
 
     if (!existing.exists) {
-      return NextResponse.json(
-        { error: "Producto no encontrado" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
-    let updates: Record<string, any> = {
+    const updates: Record<string, any> = {
       updatedAt: FieldValue.serverTimestamp(),
     }
 
@@ -29,10 +27,7 @@ export async function PATCH(
       updates.available = payload.stock > 0
     }
 
-    if (typeof payload.available === "boolean") {
-      updates.available = payload.available
-    }
-
+    if (typeof payload.available === "boolean") updates.available = payload.available
     if (typeof payload.name === "string") updates.name = payload.name
     if (typeof payload.description === "string") updates.description = payload.description
     if (typeof payload.price === "number") updates.price = payload.price
@@ -56,59 +51,29 @@ export async function PATCH(
     })
   } catch (error) {
     console.error("PATCH /api/products/[id] error", error)
-    return NextResponse.json(
-      { error: "Error al actualizar producto" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Error al actualizar producto" }, { status: 500 })
   }
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
-
-    console.log("Attempting to delete product with ID:", id)
-    
-    if (!id) {
-      console.error("No ID provided in params")
-      return NextResponse.json(
-        { error: "ID de producto no proporcionado" },
-        { status: 400 }
-      )
-    }
+    const adminDb = getAdminDb()
+    const { id } = params
 
     const productRef = adminDb.collection("products").doc(id)
     const existing = await productRef.get()
 
-    console.log("Product exists:", existing.exists)
-
     if (!existing.exists) {
-      return NextResponse.json(
-        { error: "Producto no encontrado" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
-    console.log("Deleting product...")
     await productRef.delete()
-    console.log("Product deleted successfully")
-
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("DELETE /api/products/[id] error:", error)
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-    return NextResponse.json(
-      { 
-        error: "Error al eliminar producto",
-        details: error instanceof Error ? error.message : "Unknown error"
-      },
-      { status: 500 }
-    )
+    console.error("DELETE /api/products/[id] error", error)
+    return NextResponse.json({ error: "Error al eliminar producto" }, { status: 500 })
   }
 }

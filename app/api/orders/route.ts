@@ -20,7 +20,13 @@ function mapDoc(doc: any): OrderRequest {
 
 export async function GET() {
   try {
-    const snapshot = await adminDb.collection("orders").orderBy("createdAt", "desc").get()
+    const adminDb = getAdminDb()
+
+    const snapshot = await adminDb
+      .collection("orders")
+      .orderBy("createdAt", "desc")
+      .get()
+
     const orders = snapshot.docs.map(mapDoc)
     return NextResponse.json(orders)
   } catch (error) {
@@ -31,6 +37,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const adminDb = getAdminDb()
+
     const payload = await req.json()
     const { items, total, customerName, customerPhone, customerEmail, notes } = payload
 
