@@ -23,7 +23,7 @@ export async function GET() {
     console.log("Environment check:", {
       projectId: process.env.FIREBASE_ADMIN_PROJECT_ID ? "set" : "missing",
       clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL ? "set" : "missing",
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY ? "set" : "missing",
+      privateKeyBase64: process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64 ? "set" : "missing",
     })
     
     const snapshot = await adminDb.collection("messages").orderBy("createdAt", "desc").get()
