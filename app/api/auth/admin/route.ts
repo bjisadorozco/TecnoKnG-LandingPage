@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { adminAuth } from "@/lib/firebase-admin"
+import { getAdminAuth } from "@/lib/firebase-admin"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
     }
 
     const token = authHeader.replace("Bearer ", "")
+    const adminAuth = getAdminAuth()
+
     const decoded = await adminAuth.verifyIdToken(token)
 
     if (!decoded.admin) {
