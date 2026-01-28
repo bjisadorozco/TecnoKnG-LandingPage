@@ -9,7 +9,7 @@ import { Chatbox } from "@/components/chatbox"
 import { StoreView } from "@/components/store/store-view"
 
 export default function Home() {
-  const showLanding = false
+  const showLanding = true
 
   return (
     <div className="min-h-screen bg-background">
