@@ -41,9 +41,14 @@ function AdminPage() {
 
   // Redirigir al login si no está autenticado o no es admin
   React.useEffect(() => {
+    console.log('Admin page auth check:', { user: !!user, loading, isAdmin, email: user?.email })
+    
     if (!loading) {
       if (!user || !isAdmin) {
+        console.log('Redirecting to login - User:', !!user, 'IsAdmin:', isAdmin)
         router.push('/admin/login')
+      } else {
+        console.log('Access granted to admin panel')
       }
     }
   }, [user, loading, isAdmin, router])

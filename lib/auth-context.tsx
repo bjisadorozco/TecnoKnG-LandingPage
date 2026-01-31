@@ -29,17 +29,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('Auth state changed:', { user: !!user, email: user?.email })
       setUser(user)
       
       if (user) {
-        // Obtener el token y guardarlo en cookie
-        const idToken = await user.getIdToken()
-        document.cookie = `auth_token=${idToken}; path=/; max-age=3600; SameSite=Strict;`
-        
-        // Verificar si el usuario tiene claims de administrador
-        const idTokenResult = await user.getIdTokenResult(true)
-        setIsAdmin(!!idTokenResult.claims.admin)
-        setUsername((idTokenResult.claims.username as string) || null)
+        try {
+          // Obtener el token y guardarlo en cookie
+          const idToken = await user.getIdToken()
+          document.cookie = `auth_token=${idToken}; path=/; max-age=3600; SameSite=Strict;`
+          
+          // Verificar si el usuario tiene claims de administrador
+          const idTokenResult = await user.getIdTokenResult(true)
+          console.log('Token claims:', idTokenResult.claims)
+          
+          const hasAdminClaim = !!idTokenResult.claims.admin
+          const usernameClaim = (idTokenResult.claims.username as string) || null
+          
+          console.log('Admin status:', hasAdminClaim, 'Username:', usernameClaim)
+          
+          setIsAdmin(hasAdminClaim)
+          setUsername(usernameClaim)
+        } catch (error) {
+          console.error('Error getting token claims:', error)
+          setIsAdmin(false)
+          setUsername(null)
+        }
       } else {
         // Eliminar la cookie cuando el usuario cierra sesión
         document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
@@ -65,6 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithUsername = async (username: string, password: string) => {
     try {
+      console.log('Attempting login with username:', username)
+      
       // Primero obtener el email asociado al username
       const response = await fetch('/api/auth/login-username', {
         method: 'POST',
@@ -75,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
 
       const data = await response.json()
+      console.log('Login API response:', data)
 
       if (!response.ok) {
         throw new Error(data.error || 'Error de autenticación')
@@ -88,8 +105,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await login(data.email, password)
       console.log('Usuario autenticado con username:', username)
       
-      // Esperar un momento para que el estado se actualice
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Esperar un momento para que el estado se actualice y forzar refresh de token
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Forzar una actualización del token para obtener los claims
+      const currentUser = auth.currentUser
+      if (currentUser) {
+        await currentUser.getIdTokenResult(true)
+        console.log('Token refreshed after login')
+      }
       
     } catch (error) {
       console.error('Error en login con username:', error)
