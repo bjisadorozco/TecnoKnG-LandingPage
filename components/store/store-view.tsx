@@ -487,13 +487,13 @@ export function StoreView() {
                       </span>
                     )}
                   </button>
-                  <Link
+                  {/* <Link
                     href="/admin"
                     className="flex items-center gap-2 px-4 py-3 rounded-xl border border-border text-foreground bg-background-secondary hover:border-primary hover:text-primary transition-colors"
                   >
                     <Shield className="w-5 h-5" />
                     <span className="text-sm font-medium">Panel admin</span>
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
 

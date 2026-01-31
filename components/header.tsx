@@ -21,7 +21,7 @@ import { useStore } from "@/lib/store-context"
 
 const navItems = [
   { href: "/#inicio", label: "Inicio", icon: Home },
-  { href: "/#servicios", label: "Servicios", icon: Wrench },
+  // { href: "/#servicios", label: "Servicios", icon: Wrench },
   { href: "/#sobre-mi", label: "Sobre mí", icon: Info },
   { href: "/#resenas", label: "Reseñas", icon: Star },
   { href: "/#contacto", label: "Contacto", icon: Phone },

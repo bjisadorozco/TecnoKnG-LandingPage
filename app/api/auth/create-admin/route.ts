@@ -44,7 +44,7 @@ export async function POST() {
     if (error.code === "auth/email-already-exists") {
       const adminAuth = getAdminAuth()
       const email = "brayanorozco920@gmail.com"
-      const username = "admin"
+      const username = "tecnokng"
 
       const user = await adminAuth.getUserByEmail(email)
 

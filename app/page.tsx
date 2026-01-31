@@ -18,9 +18,9 @@ export default function Home() {
           <Header />
           <main className="pb-5 md:pb-0">
             <HeroSection />
-            <ServicesSection />
-            <TestimonialsCarousel />
+            {/* <ServicesSection /> */}
             <AboutSection />
+            <TestimonialsCarousel />
             <ContactSection />
           </main>
           <Footer />

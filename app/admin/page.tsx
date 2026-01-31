@@ -20,6 +20,7 @@ import {
   Circle,
   CheckCircle2,
   ArrowRight,
+  RefreshCw,
 } from "lucide-react"
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
 import { useAuth } from "@/lib/auth-context"
@@ -716,13 +717,16 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:shadow-lg transition-shadow"
               >
                 <Plus className="w-4 h-4" />
-                Registrar producto
+                <span className="hidden sm:inline">Registrar producto</span>
+                <span className="sm:hidden">Registrar</span>
               </button>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
               >
-                Actualizar vista
+                <RefreshCw className="w-4 h-4" />
+                <span className="hidden sm:inline">Actualizar vista</span>
+                <span className="sm:hidden">Actualizar</span>
               </button>
             </div>
           </div>
@@ -961,7 +965,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   </button>
                 </div>
 
-                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-4">
+                <div className="flex flex-col-reverse gap-3 flex-row sm:flex-row sm:justify-end pt-4">
                   <button
                     type="button"
                     onClick={closeProductModal}
@@ -973,7 +977,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     type="submit"
                     className="w-full sm:w-auto px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover"
                   >
-                    Registrar producto
+                    Registrar
                   </button>
                 </div>
               </form>

@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
                 className={`w-full px-4 py-3 pl-12 rounded-xl bg-background-secondary border ${
                   error ? "border-error" : "border-border"
                 } text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
-                placeholder="tecnokng"
+                placeholder="admin"
               />
             </div>
           </div>
