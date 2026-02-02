@@ -108,8 +108,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Forzar una actualización del token para obtener los claims inmediatamente
       const currentUser = auth.currentUser
       if (currentUser) {
-        await currentUser.getIdTokenResult(true)
-        console.log('Token refreshed after login')
+        const idTokenResult = await currentUser.getIdTokenResult(true)
+        console.log('Token refreshed after login:', idTokenResult.claims)
+        
+        // Actualizar estado inmediatamente para evitar delay
+        const hasAdminClaim = !!idTokenResult.claims.admin
+        const usernameClaim = (idTokenResult.claims.username as string) || null
+        
+        console.log('Admin status:', hasAdminClaim, 'Username:', usernameClaim)
+        
+        setIsAdmin(hasAdminClaim)
+        setUsername(usernameClaim)
+        
+        // Guardar token en cookie inmediatamente
+        const idToken = await currentUser.getIdToken()
+        document.cookie = `auth_token=${idToken}; path=/; max-age=3600; SameSite=Strict;`
       }
       
     } catch (error) {

@@ -126,6 +126,13 @@ function AdminPage() {
   React.useEffect(() => {
     console.log('Admin page auth check:', { user: !!user, loading, isAdmin, email: user?.email })
     
+    // Si ya hay usuario y es admin, permitir acceso inmediatamente
+    if (user && isAdmin) {
+      console.log('Access granted to admin panel')
+      return
+    }
+    
+    // Si no está cargando y no hay usuario o no es admin, redirigir
     if (!loading) {
       if (!user || !isAdmin) {
         console.log('Redirecting to login - User:', !!user, 'IsAdmin:', isAdmin)
@@ -133,8 +140,6 @@ function AdminPage() {
         if (typeof window !== 'undefined' && !window.location.pathname.includes('/admin/login')) {
           router.push('/admin/login')
         }
-      } else {
-        console.log('Access granted to admin panel')
       }
     }
   }, [user, loading, isAdmin])
