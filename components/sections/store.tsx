@@ -14,17 +14,26 @@ import {
   HardDrive,
   Battery,
   MonitorSmartphone,
+  Tag,
 } from "lucide-react"
 import { useStore, type Product } from "@/lib/store-context"
+import { useCategories } from "@/lib/categories-context"
 
-const categories = [
-  { id: "all", name: "Todos", icon: Package },
-  { id: "accessories", name: "Accesorios", icon: Headphones },
-  { id: "cables", name: "Cables", icon: Cable },
-  { id: "storage", name: "Almacenamiento", icon: HardDrive },
-  { id: "batteries", name: "Baterías", icon: Battery },
-  { id: "screens", name: "Pantallas", icon: MonitorSmartphone },
-]
+// Icon mapping para categorías dinámicas
+const categoryIcons: Record<string, React.ComponentType<any>> = {
+  accessories: Headphones,
+  cables: Cable,
+  storage: HardDrive,
+  batteries: Battery,
+  screens: MonitorSmartphone,
+  // Icono por defecto para categorías nuevas
+  default: Tag,
+}
+
+// Función para obtener icono de categoría
+function getCategoryIcon(categoryId: string) {
+  return categoryIcons[categoryId] || categoryIcons.default
+}
 
 function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: (product: Product) => void }) {
   const isOutOfStock = !product.available || product.stock <= 0
@@ -177,6 +186,20 @@ export function StoreSection() {
   const [cartOpen, setCartOpen] = React.useState(false)
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const { cartCount, addToCart, products: storeProducts } = useStore()
+  const { categories, loading: categoriesLoading } = useCategories()
+
+  // Construir categorías dinámicamente con la opción "Todos"
+  const dynamicCategories = React.useMemo(() => {
+    const cats = [
+      { id: "all", name: "Todos", icon: Package },
+      ...categories.map(cat => ({
+        id: cat.id,
+        name: cat.label,
+        icon: getCategoryIcon(cat.id)
+      }))
+    ]
+    return cats
+  }, [categories])
 
   const filteredProducts = React.useMemo(() => {
     if (activeCategory === "all") return storeProducts
@@ -233,21 +256,21 @@ export function StoreSection() {
                 </button>
               </div>
               <nav className="space-y-2">
-                {categories.map((cat) => (
+                {dynamicCategories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => {
                       setActiveCategory(cat.id)
                       setSidebarOpen(false)
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
                       activeCategory === cat.id
-                        ? "bg-background text-primary"
-                        : "text-primary-foreground hover:bg-primary-foreground/10"
+                        ? "bg-primary-foreground text-primary"
+                        : "text-primary-foreground/80 hover:bg-primary-foreground/10"
                     }`}
                   >
                     <cat.icon className="w-5 h-5" />
-                    {cat.name}
+                    <span className="font-medium">{cat.name}</span>
                   </button>
                 ))}
               </nav>
@@ -273,18 +296,18 @@ export function StoreSection() {
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-28 bg-primary rounded-2xl p-6">
               <nav className="space-y-2">
-                {categories.map((cat) => (
+                {dynamicCategories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
                       activeCategory === cat.id
                         ? "bg-background text-primary rounded-r-none translate-x-2"
-                        : "text-primary-foreground hover:bg-primary-foreground/10"
+                        : "text-primary-foreground/80 hover:bg-primary-foreground/10"
                     }`}
                   >
                     <cat.icon className="w-5 h-5" />
-                    {cat.name}
+                    <span>{cat.name}</span>
                   </button>
                 ))}
               </nav>

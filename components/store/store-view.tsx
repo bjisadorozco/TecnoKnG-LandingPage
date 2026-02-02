@@ -16,19 +16,28 @@ import {
   Search,
   ChevronLeft,
   Shield,
+  Tag,
 } from "lucide-react"
 import Link from "next/link"
 import { useStore, type Product } from "@/lib/store-context"
 import { useToast } from "@/hooks/use-toast"
+import { useCategories } from "@/lib/categories-context"
 
-const categories = [
-  { id: "all", name: "Todos los productos", icon: Package },
-  { id: "accessories", name: "Accesorios", icon: Headphones },
-  { id: "cables", name: "Cables", icon: Cable },
-  { id: "storage", name: "Almacenamiento", icon: HardDrive },
-  { id: "batteries", name: "Baterías", icon: Battery },
-  { id: "screens", name: "Pantallas", icon: MonitorSmartphone },
-]
+// Icon mapping para categorías dinámicas
+const categoryIcons: Record<string, React.ComponentType<any>> = {
+  accessories: Headphones,
+  cables: Cable,
+  storage: HardDrive,
+  batteries: Battery,
+  screens: MonitorSmartphone,
+  // Icono por defecto para categorías nuevas
+  default: Tag,
+}
+
+// Función para obtener icono de categoría
+function getCategoryIcon(categoryId: string) {
+  return categoryIcons[categoryId] || categoryIcons.default
+}
 
 function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: (product: Product) => void }) {
   const isOutOfStock = !product.available || product.stock <= 0
@@ -283,6 +292,7 @@ function MobileCategorySidebar({
   setActiveCategory,
   cartCount,
   onOpenCart,
+  categories,
 }: {
   isOpen: boolean
   onClose: () => void
@@ -290,6 +300,7 @@ function MobileCategorySidebar({
   setActiveCategory: (category: string) => void
   cartCount: number
   onOpenCart: () => void
+  categories: Array<{id: string, name: string, icon: React.ComponentType<any>}>
 }) {
   return (
     <>
@@ -365,6 +376,20 @@ export function StoreView() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const { cart, cartCount, addToCart, products } = useStore()
   const { addToast } = useToast()
+  const { categories, loading: categoriesLoading } = useCategories()
+
+  // Construir categorías dinámicamente con la opción "Todos"
+  const dynamicCategories = React.useMemo(() => {
+    const cats = [
+      { id: "all", name: "Todos los productos", icon: Package },
+      ...categories.map(cat => ({
+        id: cat.id,
+        name: cat.label,
+        icon: getCategoryIcon(cat.id)
+      }))
+    ]
+    return cats
+  }, [categories])
 
   const filteredProducts = React.useMemo(() => {
     let filtered = Array.isArray(products) ? products : []
@@ -390,7 +415,7 @@ export function StoreView() {
     addToast(`${product.name} agregado al carrito`, "success")
   }
 
-  const activeCategoryName = categories.find((c) => c.id === activeCategory)?.name || "Todos los productos"
+  const activeCategoryName = dynamicCategories.find((c) => c.id === activeCategory)?.name || "Todos los productos"
 
   return (
     <section className="min-h-screen bg-background-secondary">
@@ -404,7 +429,7 @@ export function StoreView() {
           {/* Desktop Sidebar */}
           <aside className="hidden lg:flex flex-col w-64 bg-gradient-to-b from-primary via-primary to-primary/90 sticky top-0 h-screen">
             <nav className="flex-1 px-4 space-y-1 pt-2">
-              {categories.map((category) => (
+              {dynamicCategories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
@@ -527,6 +552,7 @@ export function StoreView() {
         setActiveCategory={setActiveCategory}
         cartCount={cartCount}
         onOpenCart={() => setCartOpen(true)}
+        categories={dynamicCategories}
       />
 
       {/* Cart Sidebar */}

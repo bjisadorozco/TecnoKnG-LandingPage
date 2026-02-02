@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { StoreProvider } from "@/lib/store-context"
 import { AuthProvider } from "@/lib/auth-context"
+import { CategoriesProvider } from "@/lib/categories-context"
 import { ToastProvider } from "@/components/ui/toast"
 import "./globals.css"
 
@@ -56,9 +57,11 @@ export default function RootLayout({
       <body className={`${inter.className} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <StoreProvider>
-              <ToastProvider>{children}</ToastProvider>
-            </StoreProvider>
+            <CategoriesProvider>
+              <StoreProvider>
+                <ToastProvider>{children}</ToastProvider>
+              </StoreProvider>
+            </CategoriesProvider>
           </AuthProvider>
         </ThemeProvider>
         <Analytics />

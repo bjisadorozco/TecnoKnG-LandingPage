@@ -105,10 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await login(data.email, password)
       console.log('Usuario autenticado con username:', username)
       
-      // Esperar un momento para que el estado se actualice y forzar refresh de token
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Forzar una actualización del token para obtener los claims
+      // Forzar una actualización del token para obtener los claims inmediatamente
       const currentUser = auth.currentUser
       if (currentUser) {
         await currentUser.getIdTokenResult(true)

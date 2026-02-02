@@ -21,23 +21,106 @@ import {
   CheckCircle2,
   ArrowRight,
   RefreshCw,
+  Tag,
+  Edit2,
+  Save,
 } from "lucide-react"
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
 import { useAuth } from "@/lib/auth-context"
+import { useCategories } from "@/lib/categories-context"
 import { useToast } from "@/hooks/use-toast"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-
-const productCategories = [
-  { id: "accessories", label: "Accesorios" },
-  { id: "cables", label: "Cables" },
-  { id: "storage", label: "Almacenamiento" },
-  { id: "batteries", label: "Baterías" },
-  { id: "screens", label: "Pantallas" },
-]
 
 function AdminPage() {
   const { user, loading, logout, isAdmin } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
+  const { categories, loading: categoriesLoading, addCategory, updateCategory, deleteCategory } = useCategories()
+
+  // Estado para gestión de categorías
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = React.useState(false)
+  const [newCategoryName, setNewCategoryName] = React.useState("")
+  const [editingCategory, setEditingCategory] = React.useState<{id: string, label: string} | null>(null)
+
+  // Funciones para gestión de categorías con persistencia
+  const handleAddCategory = async () => {
+    try {
+      if (!newCategoryName.trim()) {
+        toast({ 
+          title: "Error",
+          description: "El nombre de la categoría es requerido"
+        })
+        return
+      }
+
+      await addCategory(newCategoryName)
+      setNewCategoryName("")
+      toast({ 
+        title: "Éxito",
+        description: "Categoría agregada correctamente"
+      })
+    } catch (error: any) {
+      toast({ 
+        title: "Error",
+        description: error.message || "Error al agregar categoría"
+      })
+    }
+  }
+
+  const handleEditCategory = (category: {id: string, label: string}) => {
+    setEditingCategory(category)
+    setNewCategoryName(category.label)
+  }
+
+  const handleUpdateCategory = async () => {
+    try {
+      if (!editingCategory || !newCategoryName.trim()) {
+        toast({ 
+          title: "Error",
+          description: "El nombre de la categoría es requerido"
+        })
+        return
+      }
+
+      await updateCategory(editingCategory.id, newCategoryName)
+      setEditingCategory(null)
+      setNewCategoryName("")
+      toast({ 
+        title: "Éxito",
+        description: "Categoría actualizada correctamente"
+      })
+    } catch (error: any) {
+      toast({ 
+        title: "Error",
+        description: error.message || "Error al actualizar categoría"
+      })
+    }
+  }
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      if (!confirm("¿Estás seguro de que deseas eliminar esta categoría? Los productos en esta categoría no serán eliminados.")) {
+        return
+      }
+
+      await deleteCategory(categoryId)
+      toast({ 
+        title: "Éxito",
+        description: "Categoría eliminada correctamente"
+      })
+    } catch (error: any) {
+      toast({ 
+        title: "Error",
+        description: error.message || "Error al eliminar categoría"
+      })
+    }
+  }
+
+  const closeCategoryModal = () => {
+    setIsCategoryModalOpen(false)
+    setEditingCategory(null)
+    setNewCategoryName("")
+  }
 
   // Redirigir al login si no está autenticado o no es admin
   React.useEffect(() => {
@@ -46,12 +129,15 @@ function AdminPage() {
     if (!loading) {
       if (!user || !isAdmin) {
         console.log('Redirecting to login - User:', !!user, 'IsAdmin:', isAdmin)
-        router.push('/admin/login')
+        // Solo redirigir si no estamos ya en la página de login
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/admin/login')) {
+          router.push('/admin/login')
+        }
       } else {
         console.log('Access granted to admin panel')
       }
     }
-  }, [user, loading, isAdmin, router])
+  }, [user, loading, isAdmin])
 
   // Mostrar loading mientras se verifica la autenticación
   if (loading) {
@@ -70,7 +156,23 @@ function AdminPage() {
     return null
   }
 
-  return <AdminDashboard onLogout={logout} />
+  return (
+    <AdminDashboard 
+      onLogout={logout} 
+      productCategories={categories}
+      isCategoryModalOpen={isCategoryModalOpen}
+      setIsCategoryModalOpen={setIsCategoryModalOpen}
+      newCategoryName={newCategoryName}
+      setNewCategoryName={setNewCategoryName}
+      editingCategory={editingCategory}
+      setEditingCategory={setEditingCategory}
+      handleAddCategory={handleAddCategory}
+      handleEditCategory={handleEditCategory}
+      handleUpdateCategory={handleUpdateCategory}
+      handleDeleteCategory={handleDeleteCategory}
+      closeCategoryModal={closeCategoryModal}
+    />
+  )
 }
 
 function KanbanOrderCard({
@@ -222,7 +324,35 @@ function KanbanMessageCard({
   )
 }
 
-function AdminDashboard({ onLogout }: { onLogout: () => void }) {
+function AdminDashboard({ 
+  onLogout, 
+  productCategories,
+  isCategoryModalOpen,
+  setIsCategoryModalOpen,
+  newCategoryName,
+  setNewCategoryName,
+  editingCategory,
+  setEditingCategory,
+  handleAddCategory,
+  handleEditCategory,
+  handleUpdateCategory,
+  handleDeleteCategory,
+  closeCategoryModal
+}: { 
+  onLogout: () => void
+  productCategories: {id: string, label: string}[]
+  isCategoryModalOpen: boolean
+  setIsCategoryModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+  newCategoryName: string
+  setNewCategoryName: React.Dispatch<React.SetStateAction<string>>
+  editingCategory: {id: string, label: string} | null
+  setEditingCategory: React.Dispatch<React.SetStateAction<{id: string, label: string} | null>>
+  handleAddCategory: () => void
+  handleEditCategory: (category: {id: string, label: string}) => void
+  handleUpdateCategory: () => void
+  handleDeleteCategory: (categoryId: string) => void
+  closeCategoryModal: () => void
+}) {
   const [activeTab, setActiveTab] = React.useState<"orders" | "messages">("orders")
   const [isProductModalOpen, setIsProductModalOpen] = React.useState(false)
   const [productForm, setProductForm] = React.useState({
@@ -716,22 +846,27 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   : "Inventario saludable"}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
+            <div className="flex flex-row gap-3 flex-wrap">
               <button
                 onClick={() => setIsProductModalOpen(true)}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:shadow-lg transition-shadow"
+                className="flex-1 min-w-[60px] sm:min-w-[140px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:shadow-lg transition-shadow"
               >
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Registrar producto</span>
-                <span className="sm:hidden">Registrar</span>
+                <span className="hidden sm:inline">Productos</span>
+              </button>
+              <button
+                onClick={() => setIsCategoryModalOpen(true)}
+                className="flex-1 min-w-[60px] sm:min-w-[140px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
+              >
+                <Tag className="w-4 h-4" />
+                <span className="hidden sm:inline">Categorías</span>
               </button>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
+                className="flex-1 min-w-[60px] sm:min-w-[140px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span className="hidden sm:inline">Actualizar vista</span>
-                <span className="sm:hidden">Actualizar</span>
+                <span className="hidden sm:inline">Actualizar</span>
               </button>
             </div>
           </div>
@@ -986,6 +1121,94 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de gestión de categorías */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-md bg-background rounded-2xl border border-border shadow-2xl">
+            <div className="flex items-start justify-between p-6 border-b border-border">
+              <div>
+                <p className="text-sm text-foreground-muted">Gestión de categorías</p>
+                <h3 className="text-xl font-bold text-foreground">
+                  {editingCategory ? "Editar categoría" : "Agregar nueva categoría"}
+                </h3>
+              </div>
+              <button
+                onClick={closeCategoryModal}
+                className="p-2 rounded-xl hover:bg-background-secondary transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground-muted" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Nombre de la categoría
+                  </label>
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Ej: Auriculares, Cargadores, etc."
+                    className="w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                {/* Lista de categorías existentes */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Categorías existentes
+                  </label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {productCategories.map((category) => (
+                      <div
+                        key={category.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-background-secondary border border-border"
+                      >
+                        <span className="text-sm text-foreground">{category.label}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditCategory(category)}
+                            className="p-1.5 rounded-lg hover:bg-background transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4 text-foreground-muted" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(category.id)}
+                            className="p-1.5 rounded-lg hover:bg-background transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 text-foreground-muted" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end p-6 border-t border-border">
+              <button
+                type="button"
+                onClick={closeCategoryModal}
+                className="w-full sm:w-auto px-4 py-3 rounded-xl bg-background-secondary border border-border text-foreground font-medium hover:bg-background transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary-hover transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                {editingCategory ? "Actualizar" : "Agregar"}
+              </button>
             </div>
           </div>
         </div>
