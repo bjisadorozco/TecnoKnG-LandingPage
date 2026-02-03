@@ -124,18 +124,24 @@ function AdminPage() {
 
   // Redirigir al login si no está autenticado o no es admin
   React.useEffect(() => {
-    console.log('Admin page auth check:', { user: !!user, loading, isAdmin, email: user?.email })
+    console.log('Admin page auth check:', { user: !!user, loading, isAdmin, email: user?.email, pathname: typeof window !== 'undefined' ? window.location.pathname : 'server' })
     
-    // Si ya hay usuario y es admin, permitir acceso inmediatamente
+    // Si ya hay usuario y es admin, permitir acceso inmediatamente sin esperar loading
     if (user && isAdmin) {
-      console.log('Access granted to admin panel')
+      console.log('✅ Access granted to admin panel - Rendering admin content')
+      return
+    }
+    
+    // Si hay usuario pero loading es true, esperar un momento a que se resuelvan los claims
+    if (user && loading) {
+      console.log('⏳ User detected, waiting for claims...')
       return
     }
     
     // Si no está cargando y no hay usuario o no es admin, redirigir
     if (!loading) {
       if (!user || !isAdmin) {
-        console.log('Redirecting to login - User:', !!user, 'IsAdmin:', isAdmin)
+        console.log('❌ Redirecting to login - User:', !!user, 'IsAdmin:', isAdmin)
         // Solo redirigir si no estamos ya en la página de login
         if (typeof window !== 'undefined' && !window.location.pathname.includes('/admin/login')) {
           router.push('/admin/login')
@@ -144,16 +150,22 @@ function AdminPage() {
     }
   }, [user, loading, isAdmin])
 
-  // Mostrar loading mientras se verifica la autenticación
-  if (loading) {
+  // Mostrar loading solo si no hay usuario (primer carga)
+  if (loading && !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-foreground">Verificando autenticación...</p>
+          <p className="text-foreground-secondary">Cargando...</p>
         </div>
       </div>
     )
+  }
+
+  // Si hay usuario pero loading es true, mostrar el panel con un estado de carga sutil
+  if (loading && user) {
+    console.log('🔄 Showing admin panel while loading claims...')
+    // Continuar y mostrar el panel, los claims se cargarán en background
   }
 
   // Si no está autenticado o no es admin, no renderizar nada (la redirección se encargará)

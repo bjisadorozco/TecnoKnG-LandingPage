@@ -12,18 +12,41 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
-  const { loginWithUsername } = useAuth()
+  const { loginWithUsername, user, isAdmin, loading: authLoading } = useAuth()
   const router = useRouter()
+
+  // Si ya está autenticado y es admin, redirigir inmediatamente
+  React.useEffect(() => {
+    console.log('useEffect check:', { user: !!user, isAdmin, authLoading, isRedirecting })
+    if (user && isAdmin && !authLoading && !isRedirecting) {
+      console.log('Usuario ya autenticado como admin, redirigiendo...')
+      setIsRedirecting(true)
+      // Intentar con window.location.href como fallback
+      window.location.href = '/admin'
+    }
+  }, [user, isAdmin, authLoading]) // Removido isRedirecting de las dependencias
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Prevenir múltiples submits
+    if (loading || isRedirecting) return
+    
     setLoading(true)
     setError('')
 
     try {
-      await loginWithUsername(username, password)
-      router.push('/admin')
+      const result = await loginWithUsername(username, password)
+      
+      if (result?.hasAdminClaim) {
+        console.log('Login exitoso, esperando redirección automática...')
+        setIsRedirecting(true)
+        // El useEffect se encargará de la redirección cuando se actualice el estado
+      } else {
+        setError('No tienes permisos de administrador')
+      }
     } catch (error: any) {
       console.error('Error de login:', error)
 

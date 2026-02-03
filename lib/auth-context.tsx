@@ -13,7 +13,7 @@ interface AuthContextType {
   user: FirebaseUser | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  loginWithUsername: (username: string, password: string) => Promise<void>
+  loginWithUsername: (username: string, password: string) => Promise<{ success: boolean; hasAdminClaim: boolean; usernameClaim: string | null } | undefined>
   logout: () => Promise<void>
   isAdmin: boolean
   username: string | null
@@ -36,7 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           // Obtener el token y guardarlo en cookie
           const idToken = await user.getIdToken()
+          console.log('Guardando token en cookie...')
           document.cookie = `auth_token=${idToken}; path=/; max-age=3600; SameSite=Strict;`
+          console.log('Token guardado en cookie:', !!document.cookie.includes('auth_token'))
           
           // Verificar si el usuario tiene claims de administrador
           const idTokenResult = await user.getIdTokenResult(true)
@@ -56,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else {
         // Eliminar la cookie cuando el usuario cierra sesión
+        console.log('Eliminando token de cookie...')
         document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
         setIsAdmin(false)
         setUsername(null)
@@ -105,24 +108,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await login(data.email, password)
       console.log('Usuario autenticado con username:', username)
       
-      // Forzar una actualización del token para obtener los claims inmediatamente
+      // Esperar un momento para que onAuthStateChanged se dispare
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Verificar el estado actual después del login
       const currentUser = auth.currentUser
       if (currentUser) {
         const idTokenResult = await currentUser.getIdTokenResult(true)
         console.log('Token refreshed after login:', idTokenResult.claims)
         
-        // Actualizar estado inmediatamente para evitar delay
         const hasAdminClaim = !!idTokenResult.claims.admin
         const usernameClaim = (idTokenResult.claims.username as string) || null
         
         console.log('Admin status:', hasAdminClaim, 'Username:', usernameClaim)
         
-        setIsAdmin(hasAdminClaim)
-        setUsername(usernameClaim)
-        
-        // Guardar token en cookie inmediatamente
-        const idToken = await currentUser.getIdToken()
-        document.cookie = `auth_token=${idToken}; path=/; max-age=3600; SameSite=Strict;`
+        return { success: true, hasAdminClaim, usernameClaim }
       }
       
     } catch (error) {
