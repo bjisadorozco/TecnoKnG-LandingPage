@@ -8,6 +8,7 @@ export interface Product {
   price: number
   image: string
   category: string
+  brand: string
   description: string
   stock: number
   available: boolean

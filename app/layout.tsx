@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { StoreProvider } from "@/lib/store-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { CategoriesProvider } from "@/lib/categories-context"
+import { BrandsProvider } from "@/lib/brands-context"
 import { ToastProvider } from "@/components/ui/toast"
 import "./globals.css"
 
@@ -58,9 +59,11 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
             <CategoriesProvider>
-              <StoreProvider>
-                <ToastProvider>{children}</ToastProvider>
-              </StoreProvider>
+              <BrandsProvider>
+                <StoreProvider>
+                  <ToastProvider>{children}</ToastProvider>
+                </StoreProvider>
+              </BrandsProvider>
             </CategoriesProvider>
           </AuthProvider>
         </ThemeProvider>

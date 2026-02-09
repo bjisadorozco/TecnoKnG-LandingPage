@@ -17,11 +17,13 @@ import {
   ChevronLeft,
   Shield,
   Tag,
+  ChevronDown,
 } from "lucide-react"
 import Link from "next/link"
 import { useStore, type Product } from "@/lib/store-context"
 import { useToast } from "@/hooks/use-toast"
 import { useCategories } from "@/lib/categories-context"
+import { useBrands } from "@/lib/brands-context"
 
 // Icon mapping para categorías dinámicas
 const categoryIcons: Record<string, React.ComponentType<any>> = {
@@ -56,11 +58,18 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
         </div>
       )}
       <div className="p-4 bg-primary">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <h3 className="text-primary-foreground font-semibold text-sm truncate" title={product.name}>
-            {product.name}
-          </h3>
-          <span className="text-xs font-medium text-primary-foreground/70">{product.stock} uds.</span>
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-primary-foreground font-semibold text-sm truncate" title={product.name}>
+              {product.name}
+            </h3>
+            {product.brand && (
+              <p className="text-primary-foreground/60 text-xs truncate" title={product.brand}>
+                {product.brand}
+              </p>
+            )}
+          </div>
+          <span className="text-xs font-medium text-primary-foreground/70 whitespace-nowrap">{product.stock} uds.</span>
         </div>
         <p className="text-primary-foreground/80 font-bold mb-3">${product.price}</p>
         <button
@@ -374,9 +383,11 @@ export function StoreView() {
   const [cartOpen, setCartOpen] = React.useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [brandFilter, setBrandFilter] = React.useState("")
   const { cart, cartCount, addToCart, products } = useStore()
   const { addToast } = useToast()
   const { categories, loading: categoriesLoading } = useCategories()
+  const { brands, loading: brandsLoading } = useBrands()
 
   // Construir categorías dinámicamente con la opción "Todos"
   const dynamicCategories = React.useMemo(() => {
@@ -396,6 +407,9 @@ export function StoreView() {
     if (activeCategory !== "all") {
       filtered = filtered.filter((p) => p.category === activeCategory)
     }
+    if (brandFilter.trim()) {
+      filtered = filtered.filter((p) => p.brand?.toLowerCase().includes(brandFilter.toLowerCase()))
+    }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
@@ -403,7 +417,7 @@ export function StoreView() {
       )
     }
     return filtered
-  }, [activeCategory, searchQuery, products])
+  }, [activeCategory, brandFilter, searchQuery, products])
 
   const handleAddToCart = (product: Product) => {
     const inCart = cart.find((item) => item.id === product.id)
@@ -489,15 +503,34 @@ export function StoreView() {
             <div className="p-4 lg:px-8 lg:py-10">
               {/* Search */}
               <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="relative w-full md:max-w-md">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted" />
-                  <input
-                    type="text"
-                    placeholder="Buscar productos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                  />
+                <div className="flex flex-col md:flex-row gap-4 flex-1">
+                  <div className="relative w-full md:max-w-md">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted" />
+                    <input
+                      type="text"
+                      placeholder="Buscar productos..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    />
+                  </div>
+                  <div className="relative w-full md:max-w-xs">
+                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted z-10" />
+                    <select
+                      value={brandFilter}
+                      onChange={(e) => setBrandFilter(e.target.value)}
+                      className="w-full pl-12 pr-10 py-3 rounded-xl bg-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none cursor-pointer"
+                      disabled={brandsLoading}
+                    >
+                      <option value="">Todas las marcas</option>
+                      {brands.map((brand) => (
+                        <option key={brand.id} value={brand.name}>
+                          {brand.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted pointer-events-none z-10" />
+                  </div>
                 </div>
                 <div className="hidden md:flex items-center gap-3">
                   <button

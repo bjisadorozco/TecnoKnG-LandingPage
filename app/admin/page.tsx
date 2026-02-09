@@ -28,6 +28,7 @@ import {
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
 import { useAuth } from "@/lib/auth-context"
 import { useCategories } from "@/lib/categories-context"
+import { useBrands } from "@/lib/brands-context"
 import { useToast } from "@/hooks/use-toast"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
@@ -36,11 +37,17 @@ function AdminPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { categories, loading: categoriesLoading, addCategory, updateCategory, deleteCategory } = useCategories()
+  const { brands, loading: brandsLoading, addBrand, updateBrand, deleteBrand } = useBrands()
 
   // Estado para gestión de categorías
   const [isCategoryModalOpen, setIsCategoryModalOpen] = React.useState(false)
   const [newCategoryName, setNewCategoryName] = React.useState("")
   const [editingCategory, setEditingCategory] = React.useState<{id: string, label: string} | null>(null)
+
+  // Estado para gestión de marcas
+  const [isBrandModalOpen, setIsBrandModalOpen] = React.useState(false)
+  const [newBrandName, setNewBrandName] = React.useState("")
+  const [editingBrand, setEditingBrand] = React.useState<{id: string, name: string} | null>(null)
 
   // Funciones para gestión de categorías con persistencia
   const handleAddCategory = async () => {
@@ -122,6 +129,86 @@ function AdminPage() {
     setNewCategoryName("")
   }
 
+  // Funciones para gestión de marcas con persistencia
+  const handleAddBrand = async () => {
+    try {
+      if (!newBrandName.trim()) {
+        toast({ 
+          title: "Error",
+          description: "El nombre de la marca es requerido"
+        })
+        return
+      }
+
+      await addBrand(newBrandName)
+      setNewBrandName("")
+      toast({ 
+        title: "Éxito",
+        description: "Marca agregada correctamente"
+      })
+    } catch (error: any) {
+      toast({ 
+        title: "Error",
+        description: error.message || "Error al agregar marca"
+      })
+    }
+  }
+
+  const handleEditBrand = (brand: {id: string, name: string}) => {
+    setEditingBrand(brand)
+    setNewBrandName(brand.name)
+  }
+
+  const handleUpdateBrand = async () => {
+    try {
+      if (!editingBrand || !newBrandName.trim()) {
+        toast({ 
+          title: "Error",
+          description: "El nombre de la marca es requerido"
+        })
+        return
+      }
+
+      await updateBrand(editingBrand.id, newBrandName)
+      setEditingBrand(null)
+      setNewBrandName("")
+      toast({ 
+        title: "Éxito",
+        description: "Marca actualizada correctamente"
+      })
+    } catch (error: any) {
+      toast({ 
+        title: "Error",
+        description: error.message || "Error al actualizar marca"
+      })
+    }
+  }
+
+  const handleDeleteBrand = async (brandId: string) => {
+    try {
+      if (!confirm("¿Estás seguro de que deseas eliminar esta marca? Los productos en esta marca no serán eliminados.")) {
+        return
+      }
+
+      await deleteBrand(brandId)
+      toast({ 
+        title: "Éxito",
+        description: "Marca eliminada correctamente"
+      })
+    } catch (error: any) {
+      toast({ 
+        title: "Error",
+        description: error.message || "Error al eliminar marca"
+      })
+    }
+  }
+
+  const closeBrandModal = () => {
+    setIsBrandModalOpen(false)
+    setEditingBrand(null)
+    setNewBrandName("")
+  }
+
   // Redirigir al login si no está autenticado o no es admin
   React.useEffect(() => {
     console.log('Admin page auth check:', { user: !!user, loading, isAdmin, email: user?.email, pathname: typeof window !== 'undefined' ? window.location.pathname : 'server' })
@@ -188,6 +275,18 @@ function AdminPage() {
       handleUpdateCategory={handleUpdateCategory}
       handleDeleteCategory={handleDeleteCategory}
       closeCategoryModal={closeCategoryModal}
+      productBrands={brands}
+      isBrandModalOpen={isBrandModalOpen}
+      setIsBrandModalOpen={setIsBrandModalOpen}
+      newBrandName={newBrandName}
+      setNewBrandName={setNewBrandName}
+      editingBrand={editingBrand}
+      setEditingBrand={setEditingBrand}
+      handleAddBrand={handleAddBrand}
+      handleEditBrand={handleEditBrand}
+      handleUpdateBrand={handleUpdateBrand}
+      handleDeleteBrand={handleDeleteBrand}
+      closeBrandModal={closeBrandModal}
     />
   )
 }
@@ -354,7 +453,19 @@ function AdminDashboard({
   handleEditCategory,
   handleUpdateCategory,
   handleDeleteCategory,
-  closeCategoryModal
+  closeCategoryModal,
+  productBrands,
+  isBrandModalOpen,
+  setIsBrandModalOpen,
+  newBrandName,
+  setNewBrandName,
+  editingBrand,
+  setEditingBrand,
+  handleAddBrand,
+  handleEditBrand,
+  handleUpdateBrand,
+  handleDeleteBrand,
+  closeBrandModal
 }: { 
   onLogout: () => void
   productCategories: {id: string, label: string}[]
@@ -369,6 +480,18 @@ function AdminDashboard({
   handleUpdateCategory: () => void
   handleDeleteCategory: (categoryId: string) => void
   closeCategoryModal: () => void
+  productBrands: {id: string, name: string}[]
+  isBrandModalOpen: boolean
+  setIsBrandModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+  newBrandName: string
+  setNewBrandName: React.Dispatch<React.SetStateAction<string>>
+  editingBrand: {id: string, name: string} | null
+  setEditingBrand: React.Dispatch<React.SetStateAction<{id: string, name: string} | null>>
+  handleAddBrand: () => void
+  handleEditBrand: (brand: {id: string, name: string}) => void
+  handleUpdateBrand: () => void
+  handleDeleteBrand: (brandId: string) => void
+  closeBrandModal: () => void
 }) {
   const [activeTab, setActiveTab] = React.useState<"orders" | "messages">("orders")
   const [isProductModalOpen, setIsProductModalOpen] = React.useState(false)
@@ -378,6 +501,7 @@ function AdminDashboard({
     price: "",
     image: "",
     category: productCategories[0]?.id ?? "accessories",
+    brand: productBrands[0]?.id ?? "",
     stock: "",
     available: true,
   })
@@ -455,10 +579,11 @@ function AdminDashboard({
       price: "",
       image: "",
       category: productCategories[0]?.id ?? "accessories",
+      brand: productBrands[0]?.id ?? "",
       stock: "",
       available: true,
     })
-  }, [])
+  }, [productCategories, productBrands])
 
   const handleProductInputChange = <K extends keyof typeof productForm>(field: K, value: typeof productForm[K]) => {
     setProductForm((prev) => ({
@@ -485,6 +610,7 @@ function AdminDashboard({
       price: Number(productForm.price),
       image: productForm.image,
       category: productForm.category,
+      brand: productForm.brand,
       stock: Number(productForm.stock) || 0,
       available: productForm.available,
     })
@@ -879,6 +1005,13 @@ function AdminDashboard({
                 <span className="hidden sm:inline">Categorías</span>
               </button>
               <button
+                onClick={() => setIsBrandModalOpen(true)}
+                className="flex-1 min-w-[60px] sm:min-w-[140px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
+              >
+                <Package className="w-4 h-4" />
+                <span className="hidden sm:inline">Marcas</span>
+              </button>
+              <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="flex-1 min-w-[60px] sm:min-w-[140px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-primary"
               >
@@ -1049,6 +1182,21 @@ function AdminDashboard({
                     </select>
                   </div>
                   <div>
+                    <label className="text-sm font-medium text-foreground">Marca</label>
+                    <select
+                      value={productForm.brand}
+                      onChange={(e) => handleProductInputChange("brand", e.target.value)}
+                      className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                    >
+                      <option value="">Seleccionar marca</option>
+                      {productBrands.map((brand) => (
+                        <option key={brand.id} value={brand.id}>
+                          {brand.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
                     <label className="text-sm font-medium text-foreground">Stock</label>
                     <input
                       type="number"
@@ -1059,49 +1207,48 @@ function AdminDashboard({
                       placeholder="0"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-foreground">Imagen</label>
-                  <div className="mt-1 space-y-2">
-                    <div className="flex gap-3 items-center">
-                      <label className="px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm cursor-pointer hover:bg-background transition-colors flex items-center gap-2">
-                        <Upload className="w-4 h-4 text-foreground-muted" />
-                        <span className="text-foreground-muted">
-                          {productForm.image ? "Cambiar imagen" : "Subir imagen"}
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      
-                      {/* Vista previa más grande */}
-                      {productForm.image && productForm.image !== "loading..." && (
-                        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-background-secondary border border-border flex-shrink-0">
-                          <img 
-                            src={productForm.image} 
-                            alt="Preview" 
-                            className="w-full h-full object-cover" 
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Imagen</label>
+                    <div className="mt-1 space-y-2">
+                      <div className="flex gap-3 items-center">
+                        <label className="px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm cursor-pointer hover:bg-background transition-colors flex items-center gap-2">
+                          <Upload className="w-4 h-4 text-foreground-muted" />
+                          <span className="text-foreground-muted">
+                            {productForm.image ? "Cambiar imagen" : "Subir imagen"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
                           />
-                          <button
-                            type="button"
-                            onClick={() => handleProductInputChange("image", "")}
-                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-error text-white flex items-center justify-center hover:bg-error/90 transition-colors shadow-lg"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      
-                      {/* Estado de carga más grande */}
-                      {productForm.image === "loading..." && (
-                        <div className="w-16 h-16 rounded-lg bg-background-secondary border border-border flex items-center justify-center flex-shrink-0">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                        </div>
-                      )}
+                        </label>
+                        
+                        {/* Vista previa más grande */}
+                        {productForm.image && productForm.image !== "loading..." && (
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-background-secondary border border-border flex-shrink-0">
+                            <img 
+                              src={productForm.image} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover" 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleProductInputChange("image", "")}
+                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-error text-white flex items-center justify-center hover:bg-error/90 transition-colors shadow-lg"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* Estado de carga más grande */}
+                        {productForm.image === "loading..." && (
+                          <div className="w-16 h-16 rounded-lg bg-background-secondary border border-border flex items-center justify-center flex-shrink-0">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1225,6 +1372,97 @@ function AdminDashboard({
               >
                 <Save className="w-4 h-4" />
                 {editingCategory ? "Actualizar" : "Agregar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de gestión de marcas */}
+      {isBrandModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-md bg-background rounded-2xl border border-border shadow-2xl">
+            <div className="flex items-start justify-between p-6 border-b border-border">
+              <div>
+                <p className="text-sm text-foreground-muted">Gestión de marcas</p>
+                <h3 className="text-xl font-bold text-foreground">
+                  {editingBrand ? "Editar marca" : "Agregar nueva marca"}
+                </h3>
+              </div>
+              <button
+                onClick={closeBrandModal}
+                className="p-2 rounded-lg hover:bg-background-secondary transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground-muted" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Nombre de la marca
+                </label>
+                <input
+                  type="text"
+                  value={newBrandName}
+                  onChange={(e) => setNewBrandName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Ej: Samsung, Apple, Xiaomi..."
+                />
+              </div>
+
+              {/* Lista de marcas existentes */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Marcas existentes
+                </label>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {productBrands.map((brand) => (
+                    <div
+                      key={brand.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-background-secondary border border-border"
+                    >
+                      <span className="text-sm font-medium text-foreground">{brand.name}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditBrand(brand)}
+                          className="p-1.5 rounded hover:bg-background transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4 text-foreground-muted" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBrand(brand.id)}
+                          className="p-1.5 rounded hover:bg-background transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {productBrands.length === 0 && (
+                    <p className="text-center text-foreground-muted py-4">
+                      No hay marcas registradas
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 p-6 border-t border-border">
+              <button
+                type="button"
+                onClick={closeBrandModal}
+                className="w-full sm:w-auto px-4 py-3 rounded-xl bg-background-secondary border border-border text-foreground font-medium hover:bg-background transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={editingBrand ? handleUpdateBrand : handleAddBrand}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary-hover transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                {editingBrand ? "Actualizar" : "Agregar"}
               </button>
             </div>
           </div>
