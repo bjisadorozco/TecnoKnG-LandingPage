@@ -26,6 +26,7 @@ function mapProductSnapshot(snapshot: QueryDocumentSnapshot<DocumentData>): Prod
     price: data.price ?? 0,
     image: data.image ?? "",
     category: data.category ?? "accessories",
+    brand: data.brand ?? "",
     stock: data.stock ?? 0,
     available: typeof data.available === "boolean" ? data.available : true,
   }
