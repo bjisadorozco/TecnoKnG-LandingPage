@@ -32,6 +32,7 @@ export async function PATCH(
     if (typeof payload.description === "string") updates.description = payload.description
     if (typeof payload.price === "number") updates.price = payload.price
     if (typeof payload.image === "string") updates.image = payload.image
+    if (typeof payload.images === "object") updates.images = payload.images
     if (typeof payload.category === "string") updates.category = payload.category
 
     await productRef.update(updates)
@@ -45,6 +46,7 @@ export async function PATCH(
       description: data.description ?? "",
       price: data.price ?? 0,
       image: data.image ?? "",
+      images: data.images ?? [],
       category: data.category ?? "accessories",
       stock: data.stock ?? 0,
       available: typeof data.available === "boolean" ? data.available : true,
