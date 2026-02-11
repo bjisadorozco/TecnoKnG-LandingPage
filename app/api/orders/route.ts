@@ -46,6 +46,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Campos obligatorios inválidos" }, { status: 400 })
     }
 
+    // Verificar y actualizar stock de cada producto
+    const batch = adminDb.batch()
+    
+    for (const item of items) {
+      const productRef = adminDb.collection("products").doc(item.id)
+      const productDoc = await productRef.get()
+      
+      if (!productDoc.exists) {
+        return NextResponse.json({ error: `Producto ${item.id} no encontrado` }, { status: 400 })
+      }
+      
+      const currentStock = productDoc.data()?.stock || 0
+      const newStock = currentStock - item.quantity
+      
+      if (newStock < 0) {
+        return NextResponse.json({ error: `Stock insuficiente para ${item.name}` }, { status: 400 })
+      }
+      
+      // Actualizar stock y disponibilidad
+      batch.update(productRef, {
+        stock: newStock,
+        available: newStock > 0,
+        updatedAt: FieldValue.serverTimestamp(),
+      })
+    }
+
+    // Ejecutar actualización de stock
+    await batch.commit()
+
+    // Crear el pedido
     const docRef = await adminDb.collection("orders").add({
       items,
       total,

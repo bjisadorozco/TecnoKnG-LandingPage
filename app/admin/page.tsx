@@ -24,6 +24,9 @@ import {
   Tag,
   Edit2,
   Save,
+  Archive,
+  Eye,
+  History,
 } from "lucide-react"
 import { useStore, type OrderRequest, type ContactMessage } from "@/lib/store-context"
 import { useAuth } from "@/lib/auth-context"
@@ -295,79 +298,62 @@ function KanbanOrderCard({
   order,
   onMoveToNext,
   onSendNotification,
+  onArchive,
+  onShowDetails,
 }: {
   order: OrderRequest
   onMoveToNext: () => void
   onSendNotification: (type: "whatsapp" | "email") => void
+  onArchive: () => void
+  onShowDetails: () => void
 }) {
   return (
     <div className="p-4 rounded-xl bg-background border border-border hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-2 mb-3">
-        <div>
-          <span className="text-xs text-foreground-muted">{order.id}</span>
-          <h4 className="font-semibold text-foreground text-sm">{order.customerName}</h4>
-        </div>
-        <span className="text-xs text-foreground-muted">{new Date(order.createdAt).toLocaleDateString("es-ES")}</span>
-      </div>
-
-      <div className="space-y-1 text-xs text-foreground-secondary mb-3">
-        <div className="flex items-center gap-2">
-          <Phone className="w-3 h-3" />
-          <span>{order.customerPhone}</span>
-        </div>
-        {order.customerEmail && (
-          <div className="flex items-center gap-2">
-            <Mail className="w-3 h-3" />
-            <span className="truncate">{order.customerEmail}</span>
-          </div>
-        )}
-      </div>
-
-      <div className="p-2 rounded-lg bg-background-secondary mb-3">
-        <div className="text-xs text-foreground-secondary">
-          {order.items.slice(0, 2).map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <span className="truncate">
+        <div className="flex-1">
+          <div className="space-y-1">
+            {order.items.slice(0, 2).map((item, index) => (
+              <h4 key={index} className="font-semibold text-foreground text-sm truncate">
                 {item.name} x{item.quantity}
-              </span>
-            </div>
-          ))}
-          {order.items.length > 2 && <span className="text-foreground-muted">+{order.items.length - 2} más...</span>}
+              </h4>
+            ))}
+            {order.items.length > 2 && (
+              <p className="text-xs text-foreground-muted">+{order.items.length - 2} más...</p>
+            )}
+          </div>
+          <p className="text-xs text-foreground-secondary mt-2">{order.customerName}</p>
         </div>
-        <div className="flex justify-between font-semibold text-foreground text-sm mt-2 pt-2 border-t border-border">
-          <span>Total</span>
-          <span className="text-primary">${order.total.toFixed(2)}</span>
-        </div>
+        <span className="text-xs text-foreground-muted whitespace-nowrap">{new Date(order.createdAt).toLocaleDateString("es-ES")}</span>
       </div>
 
-      <div className="flex gap-2 mb-3">
-        <button
-          onClick={() => onSendNotification("whatsapp")}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-green-500/10 text-green-600 text-xs font-medium hover:bg-green-500/20 transition-colors"
-        >
-          <Send className="w-3 h-3" />
-          WhatsApp
-        </button>
-        {order.customerEmail && (
+      <div className="flex gap-2 mt-3">
+        {order.status !== "completed" && order.status !== "cancelled" && (
           <button
-            onClick={() => onSendNotification("email")}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-500/10 text-blue-600 text-xs font-medium hover:bg-blue-500/20 transition-colors"
+            onClick={onMoveToNext}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
           >
-            <Mail className="w-3 h-3" />
-            Email
+            <ArrowRight className="w-3 h-3" />
+            Siguiente
+          </button>
+        )}
+        {order.status === "completed" || order.status === "cancelled" ? (
+          <button
+            onClick={onArchive}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-orange-500/10 text-orange-600 text-xs font-medium hover:bg-orange-500/20 transition-colors"
+          >
+            <Archive className="w-3 h-3" />
+            Archivar
+          </button>
+        ) : (
+          <button
+            onClick={onShowDetails}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-gray-500/10 text-gray-600 text-xs font-medium hover:bg-gray-500/20 transition-colors"
+          >
+            <Eye className="w-3 h-3" />
+            Ver
           </button>
         )}
       </div>
-
-      {order.status !== "completed" && order.status !== "cancelled" && (
-        <button
-          onClick={onMoveToNext}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
-        >
-          Mover a siguiente
-          <ArrowRight className="w-3 h-3" />
-        </button>
-      )}
     </div>
   )
 }
@@ -376,66 +362,51 @@ function KanbanMessageCard({
   message,
   onMoveToNext,
   onSendNotification,
+  onArchive,
+  onShowDetails,
 }: {
   message: ContactMessage
   onMoveToNext: () => void
   onSendNotification: (type: "whatsapp" | "email") => void
+  onArchive: () => void
+  onShowDetails: () => void
 }) {
   return (
     <div className="p-4 rounded-xl bg-background border border-border hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-2 mb-3">
-        <div>
-          <span className="text-xs text-foreground-muted">{message.id}</span>
-          <h4 className="font-semibold text-foreground text-sm">{message.name}</h4>
+        <div className="flex-1">
+          <h4 className="font-semibold text-foreground text-sm">{message.service}</h4>
+          <p className="text-xs text-foreground-secondary mt-2">{message.name}</p>
         </div>
-        <span className="text-xs text-foreground-muted">{new Date(message.createdAt).toLocaleDateString("es-ES")}</span>
+        <span className="text-xs text-foreground-muted whitespace-nowrap">{new Date(message.createdAt).toLocaleDateString("es-ES")}</span>
       </div>
 
-      <div className="space-y-1 text-xs text-foreground-secondary mb-3">
-        <div className="flex items-center gap-2">
-          <Mail className="w-3 h-3" />
-          <span className="truncate">{message.email}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Phone className="w-3 h-3" />
-          <span>{message.phone}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <ShoppingBag className="w-3 h-3" />
-          <span>{message.service}</span>
-        </div>
-      </div>
-
-      <div className="p-2 rounded-lg bg-background-secondary mb-3">
-        <p className="text-xs text-foreground-secondary line-clamp-3">{message.message}</p>
-      </div>
-
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2">
         <button
-          onClick={() => onSendNotification("whatsapp")}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-green-500/10 text-green-600 text-xs font-medium hover:bg-green-500/20 transition-colors"
+          onClick={onShowDetails}
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-gray-500/10 text-gray-600 text-xs font-medium hover:bg-gray-500/20 transition-colors"
         >
-          <Send className="w-3 h-3" />
-          WhatsApp
+          <Eye className="w-3 h-3" />
+          Ver
         </button>
-        <button
-          onClick={() => onSendNotification("email")}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-500/10 text-blue-600 text-xs font-medium hover:bg-blue-500/20 transition-colors"
-        >
-          <Mail className="w-3 h-3" />
-          Email
-        </button>
+        {message.status === "replied" ? (
+          <button
+            onClick={onArchive}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-orange-500/10 text-orange-600 text-xs font-medium hover:bg-orange-500/20 transition-colors"
+          >
+            <Archive className="w-3 h-3" />
+            Archivar
+          </button>
+        ) : (
+          <button
+            onClick={onMoveToNext}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+          >
+            Siguiente
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        )}
       </div>
-
-      {message.status !== "replied" && (
-        <button
-          onClick={onMoveToNext}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
-        >
-          Mover a siguiente
-          <ArrowRight className="w-3 h-3" />
-        </button>
-      )}
     </div>
   )
 }
@@ -495,11 +466,18 @@ function AdminDashboard({
 }) {
   const [activeTab, setActiveTab] = React.useState<"orders" | "messages">("orders")
   const [isProductModalOpen, setIsProductModalOpen] = React.useState(false)
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = React.useState(false)
+  const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false)
+  const [selectedItem, setSelectedItem] = React.useState<OrderRequest | ContactMessage | null>(null)
+  const [historyType, setHistoryType] = React.useState<"orders" | "messages">("orders")
+  const [orderHistory, setOrderHistory] = React.useState<(OrderRequest & { archivedAt: Date })[]>([])
+  const [messageHistory, setMessageHistory] = React.useState<(ContactMessage & { archivedAt: Date })[]>([])
   const [productForm, setProductForm] = React.useState({
     name: "",
     description: "",
     price: "",
     image: "",
+    images: [] as string[],
     category: productCategories[0]?.id ?? "accessories",
     brand: productBrands[0]?.id ?? "",
     stock: "",
@@ -508,8 +486,10 @@ function AdminDashboard({
   const {
     orders,
     updateOrderStatus,
+    deleteOrder,
     contactMessages,
     updateMessageStatus,
+    deleteMessage,
     products,
     addProduct,
     updateProductStock,
@@ -568,6 +548,65 @@ function AdminDashboard({
     }
   }
 
+  // Funciones para manejar historial
+  const loadHistory = React.useCallback(async (type: "orders" | "messages") => {
+    try {
+      const response = await fetch(`/api/${type}/history`)
+      const data = await response.json()
+      
+      if (type === "orders") {
+        setOrderHistory(data)
+      } else {
+        setMessageHistory(data)
+      }
+    } catch (error) {
+      console.error(`Error loading ${type} history:`, error)
+      addToast(`Error al cargar historial de ${type === "orders" ? "pedidos" : "mensajes"}`, "error")
+    }
+  }, [addToast])
+
+  const handleArchive = React.useCallback(async (type: "orders" | "messages", id: string) => {
+    try {
+      addToast(`Archivando ${type === "orders" ? "pedido" : "mensaje"}...`, "success")
+      
+      const response = await fetch(`/api/${type}/history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [type === "orders" ? "orderId" : "messageId"]: id }),
+      })
+      
+      if (response.ok) {
+        addToast(`${type === "orders" ? "Pedido" : "Mensaje"} archivado correctamente`, "success")
+        
+        // Eliminar inmediatamente del estado local para que desaparezca de la UI
+        if (type === "orders") {
+          deleteOrder(id)
+        } else {
+          deleteMessage(id)
+        }
+
+        // Recargar historial para asegurar persistencia
+        await loadHistory(type)
+      } else {
+        throw new Error("Error al archivar")
+      }
+    } catch (error) {
+      console.error(`Error archiving ${type}:`, error)
+      addToast(`Error al archivar ${type === "orders" ? "pedido" : "mensaje"}`, "error")
+    }
+  }, [addToast, deleteOrder, deleteMessage, loadHistory])
+
+  const handleShowDetails = React.useCallback((item: OrderRequest | ContactMessage) => {
+    setSelectedItem(item)
+    setIsDetailModalOpen(true)
+  }, [])
+
+  const handleShowHistory = React.useCallback((type: "orders" | "messages") => {
+    setHistoryType(type)
+    loadHistory(type)
+    setIsHistoryModalOpen(true)
+  }, [loadHistory])
+
   const totalPendingOrders = ordersByStatus.pending.length
   const totalPendingMessages = messagesByStatus.pending.length
   const lowStockProducts = (Array.isArray(products) ? products : []).filter((product) => product.stock <= 3)
@@ -578,6 +617,7 @@ function AdminDashboard({
       description: "",
       price: "",
       image: "",
+      images: [] as string[],
       category: productCategories[0]?.id ?? "accessories",
       brand: productBrands[0]?.id ?? "",
       stock: "",
@@ -599,7 +639,7 @@ function AdminDashboard({
 
   const handleProductSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!productForm.name || !productForm.price || !productForm.image) {
+    if (!productForm.name || !productForm.price || !productForm.images.length) {
       addToast("Completa los campos obligatorios", "error")
       return
     }
@@ -608,15 +648,17 @@ function AdminDashboard({
       name: productForm.name,
       description: productForm.description,
       price: Number(productForm.price),
-      image: productForm.image,
+      image: productForm.images[0] || "", // Usar la primera imagen como principal
+      images: productForm.images,
       category: productForm.category,
       brand: productForm.brand,
-      stock: Number(productForm.stock) || 0,
+      stock: Number(productForm.stock),
       available: productForm.available,
     })
 
     addToast("Producto registrado correctamente", "success")
     closeProductModal()
+    resetProductForm()
   }
 
   const handleStockChange = (productId: string, value: string) => {
@@ -655,34 +697,39 @@ function AdminDashboard({
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
 
-    // Validate file size (max 5MB for mobile compatibility)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("La imagen es demasiado grande. Máximo 5MB.")
-      return
-    }
+    // Validate total file size (max 5MB each)
+    const validFiles = files.filter(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`La imagen ${file.name} es demasiado grande. Máximo 5MB por imagen.`)
+        return false
+      }
+      if (!file.type.startsWith('image/')) {
+        alert(`El archivo ${file.name} no es una imagen válida.`)
+        return false
+      }
+      return true
+    })
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert("Por favor selecciona un archivo de imagen válido.")
-      return
-    }
+    if (!validFiles.length) return
 
-    // Show loading state
-    handleProductInputChange("image", "loading...")
-
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const result = reader.result as string
-      handleProductInputChange("image", result)
-    }
-    reader.onerror = () => {
-      alert("Error al leer la imagen. Intenta de nuevo.")
-      handleProductInputChange("image", "")
-    }
-    reader.readAsDataURL(file)
+    // Process each file
+    validFiles.forEach(file => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const result = reader.result as string
+        setProductForm(prev => ({
+          ...prev,
+          images: [...prev.images, result]
+        }))
+      }
+      reader.onerror = () => {
+        alert(`Error al leer la imagen ${file.name}. Intenta de nuevo.`)
+      }
+      reader.readAsDataURL(file)
+    })
   }
 
   return (
@@ -766,17 +813,17 @@ function AdminDashboard({
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto">
+        <div className="flex gap-2 mb-6">
           <button
             onClick={() => setActiveTab("orders")}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-3 py-3 rounded-xl font-medium transition-colors ${
               activeTab === "orders"
                 ? "bg-primary text-primary-foreground"
                 : "bg-background text-foreground-secondary hover:text-foreground border border-border"
             }`}
           >
             <Package className="w-5 h-5" />
-            Pedidos
+            <span className="hidden sm:inline">Pedidos</span>
             {totalPendingOrders > 0 && (
               <span
                 className={`px-2 py-0.5 rounded-full text-xs ${
@@ -789,14 +836,14 @@ function AdminDashboard({
           </button>
           <button
             onClick={() => setActiveTab("messages")}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-3 py-3 rounded-xl font-medium transition-colors ${
               activeTab === "messages"
                 ? "bg-primary text-primary-foreground"
                 : "bg-background text-foreground-secondary hover:text-foreground border border-border"
             }`}
           >
             <MessageSquare className="w-5 h-5" />
-            Mensajes
+            <span className="hidden sm:inline">Mensajes</span>
             {totalPendingMessages > 0 && (
               <span
                 className={`px-2 py-0.5 rounded-full text-xs ${
@@ -806,6 +853,13 @@ function AdminDashboard({
                 {totalPendingMessages}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => handleShowHistory(activeTab)}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl font-medium transition-colors bg-background text-foreground-secondary hover:text-foreground border border-border"
+          >
+            <History className="w-5 h-5" />
+            <span className="hidden sm:inline">Historial</span>
           </button>
         </div>
 
@@ -832,6 +886,8 @@ function AdminDashboard({
                       onSendNotification={(type) =>
                         handleSendNotification(type, order.customerPhone, order.customerEmail, order.customerName)
                       }
+                      onArchive={() => handleArchive("orders", order.id)}
+                      onShowDetails={() => handleShowDetails(order)}
                     />
                   ))
                 )}
@@ -859,6 +915,8 @@ function AdminDashboard({
                       onSendNotification={(type) =>
                         handleSendNotification(type, order.customerPhone, order.customerEmail, order.customerName)
                       }
+                      onArchive={() => handleArchive("orders", order.id)}
+                      onShowDetails={() => handleShowDetails(order)}
                     />
                   ))
                 )}
@@ -886,6 +944,8 @@ function AdminDashboard({
                       onSendNotification={(type) =>
                         handleSendNotification(type, order.customerPhone, order.customerEmail, order.customerName)
                       }
+                      onArchive={() => handleArchive("orders", order.id)}
+                      onShowDetails={() => handleShowDetails(order)}
                     />
                   ))
                 )}
@@ -915,6 +975,8 @@ function AdminDashboard({
                       onSendNotification={(type) =>
                         handleSendNotification(type, message.phone, message.email, message.name)
                       }
+                      onArchive={() => handleArchive("messages", message.id)}
+                      onShowDetails={() => handleShowDetails(message)}
                     />
                   ))
                 )}
@@ -942,6 +1004,8 @@ function AdminDashboard({
                       onSendNotification={(type) =>
                         handleSendNotification(type, message.phone, message.email, message.name)
                       }
+                      onArchive={() => handleArchive("messages", message.id)}
+                      onShowDetails={() => handleShowDetails(message)}
                     />
                   ))
                 )}
@@ -969,6 +1033,8 @@ function AdminDashboard({
                       onSendNotification={(type) =>
                         handleSendNotification(type, message.phone, message.email, message.name)
                       }
+                      onArchive={() => handleArchive("messages", message.id)}
+                      onShowDetails={() => handleShowDetails(message)}
                     />
                   ))
                 )}
@@ -1208,46 +1274,61 @@ function AdminDashboard({
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground">Imagen</label>
-                    <div className="mt-1 space-y-2">
-                      <div className="flex gap-3 items-center">
-                        <label className="px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm cursor-pointer hover:bg-background transition-colors flex items-center gap-2">
-                          <Upload className="w-4 h-4 text-foreground-muted" />
-                          <span className="text-foreground-muted">
-                            {productForm.image ? "Cambiar imagen" : "Subir imagen"}
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
+                    <label className="block text-sm font-medium text-foreground mb-2">Imágenes del producto</label>
+                    <div className="space-y-3">
+                      {productForm.images.length > 0 && (
+                        <div className="flex gap-2 overflow-x-auto pb-2">
+                          {productForm.images.map((image, index) => (
+                            <div key={index} className="relative flex-shrink-0 group">
+                              <div className="w-16 h-16 bg-background-secondary rounded-lg overflow-hidden border border-border">
+                                <img
+                                  src={image}
+                                  alt={`Imagen ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setProductForm(prev => ({
+                                      ...prev,
+                                      images: prev.images.filter((_, i) => i !== index)
+                                    }))
+                                  }}
+                                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div>
+                        <label
+                          htmlFor="product-images"
+                          className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border rounded-lg bg-background-secondary hover:bg-background/50 transition-colors cursor-pointer"
+                        >
+                          <div className="text-center">
+                            <Package className="w-6 h-6 text-foreground-muted mx-auto mb-1" />
+                            <p className="text-sm text-foreground-secondary">
+                              {productForm.images.length === 0
+                                ? "Subir imágenes"
+                                : `Agregar (${productForm.images.length}/5)`
+                              }
+                            </p>
+                            <p className="text-xs text-foreground-muted mt-1">
+                              JPG, PNG, WebP • 5MB máx.
+                            </p>
+                          </div>
                         </label>
-                        
-                        {/* Vista previa más grande */}
-                        {productForm.image && productForm.image !== "loading..." && (
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-background-secondary border border-border flex-shrink-0">
-                            <img 
-                              src={productForm.image} 
-                              alt="Preview" 
-                              className="w-full h-full object-cover" 
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleProductInputChange("image", "")}
-                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-error text-white flex items-center justify-center hover:bg-error/90 transition-colors shadow-lg"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                        
-                        {/* Estado de carga más grande */}
-                        {productForm.image === "loading..." && (
-                          <div className="w-16 h-16 rounded-lg bg-background-secondary border border-border flex items-center justify-center flex-shrink-0">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                          </div>
-                        )}
+                        <input
+                          id="product-images"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1463,6 +1544,268 @@ function AdminDashboard({
               >
                 <Save className="w-4 h-4" />
                 {editingBrand ? "Actualizar" : "Agregar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de detalles */}
+      {isDetailModalOpen && selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={() => setIsDetailModalOpen(false)} />
+          <div className="relative z-10 w-full max-w-2xl bg-background rounded-2xl shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
+              <div>
+                <p className="text-sm text-foreground-muted">
+                  {"customerName" in selectedItem ? "Detalles del Pedido" : "Detalles del Mensaje"}
+                </p>
+                <h3 className="text-2xl font-bold text-foreground">
+                  {"customerName" in selectedItem ? selectedItem.customerName : selectedItem.name}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="w-10 h-10 rounded-xl bg-background-secondary border border-border flex items-center justify-center hover:text-primary"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+              {"customerName" in selectedItem ? (
+                // Detalles de pedido
+                <div className="space-y-6">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Teléfono</p>
+                      <p className="font-medium">{selectedItem.customerPhone}</p>
+                    </div>
+                    {selectedItem.customerEmail && (
+                      <div>
+                        <p className="text-sm text-foreground-muted mb-1">Email</p>
+                        <p className="font-medium">{selectedItem.customerEmail}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Estado</p>
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedItem.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                        selectedItem.status === "contacted" ? "bg-blue-100 text-blue-800" :
+                        selectedItem.status === "completed" ? "bg-green-100 text-green-800" :
+                        "bg-red-100 text-red-800"
+                      }`}>
+                        {selectedItem.status === "pending" ? "Pendiente" :
+                         selectedItem.status === "contacted" ? "Contactado" :
+                         selectedItem.status === "completed" ? "Completado" :
+                         "Cancelado"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Fecha</p>
+                      <p className="font-medium">{new Date(selectedItem.createdAt).toLocaleDateString("es-ES")}</p>
+                    </div>
+                  </div>
+
+                  {selectedItem.notes && (
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-2">Notas del cliente</p>
+                      <div className="p-3 rounded-lg bg-background-secondary border border-border">
+                        <p className="text-sm">{selectedItem.notes}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="text-sm text-foreground-muted mb-2">Productos</p>
+                    <div className="space-y-2">
+                      {selectedItem.items.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center p-3 rounded-lg bg-background-secondary border border-border">
+                          <div>
+                            <p className="font-medium">{item.name}</p>
+                            <p className="text-sm text-foreground-muted">Cantidad: {item.quantity}</p>
+                          </div>
+                          <p className="font-semibold">${Number(item.price * item.quantity).toLocaleString("es-ES")}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <div className="flex justify-between items-center">
+                        <p className="text-lg font-semibold">Total</p>
+                        <p className="text-xl font-bold text-primary">${Number(selectedItem.total).toLocaleString("es-ES")}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Detalles de mensaje
+                <div className="space-y-6">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Email</p>
+                      <p className="font-medium">{selectedItem.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Teléfono</p>
+                      <p className="font-medium">{selectedItem.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Servicio</p>
+                      <p className="font-medium">{selectedItem.service}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Estado</p>
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedItem.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                        selectedItem.status === "read" ? "bg-blue-100 text-blue-800" :
+                        "bg-green-100 text-green-800"
+                      }`}>
+                        {selectedItem.status === "pending" ? "Pendiente" :
+                         selectedItem.status === "read" ? "Leído" :
+                         "Respondido"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Fecha</p>
+                      <p className="font-medium">{new Date(selectedItem.createdAt).toLocaleDateString("es-ES")}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-foreground-muted mb-2">Mensaje</p>
+                    <div className="p-4 rounded-lg bg-background-secondary border border-border">
+                      <p className="text-sm whitespace-pre-wrap">{selectedItem.message}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between p-6 border-t border-border">
+              <div className="flex gap-2">
+                {"customerName" in selectedItem ? (
+                  <>
+                    <button
+                      onClick={() => handleSendNotification("whatsapp", selectedItem.customerPhone, selectedItem.customerEmail, selectedItem.customerName)}
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 text-green-600 text-sm font-medium hover:bg-green-500/20 transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                      WhatsApp
+                    </button>
+                    {selectedItem.customerEmail && (
+                      <button
+                        onClick={() => handleSendNotification("email", selectedItem.customerPhone, selectedItem.customerEmail, selectedItem.customerName)}
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl bg-blue-500/10 text-blue-600 text-sm font-medium hover:bg-blue-500/20 transition-colors"
+                      >
+                        <Mail className="w-4 h-4" />
+                        Email
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleSendNotification("whatsapp", selectedItem.phone, selectedItem.email, selectedItem.name)}
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 text-green-600 text-sm font-medium hover:bg-green-500/20 transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                      WhatsApp
+                    </button>
+                    <button
+                      onClick={() => handleSendNotification("email", selectedItem.phone, selectedItem.email, selectedItem.name)}
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-blue-500/10 text-blue-600 text-sm font-medium hover:bg-blue-500/20 transition-colors"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Email
+                    </button>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm font-medium text-foreground-secondary hover:text-foreground"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de historial */}
+      {isHistoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={() => setIsHistoryModalOpen(false)} />
+          <div className="relative z-10 w-full max-w-4xl bg-background rounded-2xl shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
+              <div>
+                <p className="text-sm text-foreground-muted">Historial</p>
+                <h3 className="text-2xl font-bold text-foreground">
+                  {historyType === "orders" ? "Historial de Pedidos" : "Historial de Mensajes"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="w-10 h-10 rounded-xl bg-background-secondary border border-border flex items-center justify-center hover:text-primary"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+              <div className="space-y-4">
+                {(historyType === "orders" ? orderHistory : messageHistory).length === 0 ? (
+                  <p className="text-center text-foreground-muted py-8">
+                    No hay {historyType === "orders" ? "pedidos" : "mensajes"} en el historial
+                  </p>
+                ) : (
+                  (historyType === "orders" ? orderHistory : messageHistory).map((item) => (
+                    <div key={item.id} className="p-4 rounded-xl bg-background-secondary border border-border">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground">
+                            {"customerName" in item ? item.customerName : item.name}
+                          </h4>
+                          <p className="text-sm text-foreground-muted mt-1">
+                            {"customerName" in item ? `Total: $${Number(item.total).toLocaleString("es-ES")}` : `Servicio: ${item.service}`}
+                          </p>
+                          <p className="text-xs text-foreground-muted mt-2">
+                            Archivado: {new Date(item.archivedAt).toLocaleDateString("es-ES")}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (confirm(`¿Estás seguro de eliminar permanentemente este ${historyType === "orders" ? "pedido" : "mensaje"}?`)) {
+                              // Aquí podrías agregar la lógica para eliminar permanentemente
+                              console.log("Eliminar permanentemente:", item.id)
+                            }
+                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-600 text-xs font-medium hover:bg-red-500/20 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between p-6 border-t border-border">
+              <button
+                onClick={() => handleShowHistory(historyType)}
+                className="px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm font-medium text-foreground-secondary hover:text-foreground"
+              >
+                Actualizar
+              </button>
+              <button
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover"
+              >
+                Cerrar
               </button>
             </div>
           </div>

@@ -18,6 +18,9 @@ import {
   Shield,
   Tag,
   ChevronDown,
+  Eye,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight,
 } from "lucide-react"
 import Link from "next/link"
 import { useStore, type Product } from "@/lib/store-context"
@@ -41,7 +44,11 @@ function getCategoryIcon(categoryId: string) {
   return categoryIcons[categoryId] || categoryIcons.default
 }
 
-function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: (product: Product) => void }) {
+function ProductCard({ product, onAddToCart, onViewDetails }: { 
+  product: Product; 
+  onAddToCart: (product: Product) => void;
+  onViewDetails: (product: Product) => void;
+}) {
   const isOutOfStock = !product.available || product.stock <= 0
   return (
     <article className="group bg-background rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 relative">
@@ -58,31 +65,31 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
         </div>
       )}
       <div className="p-4 bg-primary">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-primary-foreground font-semibold text-sm truncate" title={product.name}>
-              {product.name}
-            </h3>
-            {product.brand && (
-              <p className="text-primary-foreground/60 text-xs truncate" title={product.brand}>
-                {product.brand}
-              </p>
-            )}
-          </div>
+        <h3 className="font-semibold text-primary-foreground line-clamp-2 mb-2">{product.name}</h3>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-medium text-primary-foreground/70 whitespace-nowrap">${product.price}</span>
           <span className="text-xs font-medium text-primary-foreground/70 whitespace-nowrap">{product.stock} uds.</span>
         </div>
-        <p className="text-primary-foreground/80 font-bold mb-3">${product.price}</p>
-        <button
-          onClick={() => onAddToCart(product)}
-          disabled={isOutOfStock}
-          className={`w-full py-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all duration-200 flex items-center justify-center gap-2 ${
-            isOutOfStock
-              ? "bg-background/60 text-primary-foreground/50 cursor-not-allowed"
-              : "bg-background text-primary hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98]"
-          }`}
-        >
-          {isOutOfStock ? "Sin stock" : "Agregar"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onViewDetails(product)}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-white text-gray-800 text-xs font-medium hover:bg-gray-100 transition-colors"
+          >
+            <Eye className="w-3 h-3" />
+            Ver
+          </button>
+          <button
+            onClick={() => onAddToCart(product)}
+            disabled={isOutOfStock}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all duration-200 flex items-center justify-center gap-2 ${
+              isOutOfStock
+                ? "bg-background/60 text-primary-foreground/50 cursor-not-allowed"
+                : "bg-background text-primary hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98]"
+            }`}
+          >
+            {isOutOfStock ? "Sin stock" : "Agregar"}
+          </button>
+        </div>
       </div>
     </article>
   )
@@ -384,6 +391,9 @@ export function StoreView() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [brandFilter, setBrandFilter] = React.useState("")
+  const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null)
+  const [isProductModalOpen, setIsProductModalOpen] = React.useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0)
   const { cart, cartCount, addToCart, products } = useStore()
   const { addToast } = useToast()
   const { categories, loading: categoriesLoading } = useCategories()
@@ -404,6 +414,10 @@ export function StoreView() {
 
   const filteredProducts = React.useMemo(() => {
     let filtered = Array.isArray(products) ? products : []
+    
+    // Filtrar productos sin stock (no disponibles o stock = 0)
+    filtered = filtered.filter((p) => p.available && p.stock > 0)
+    
     if (activeCategory !== "all") {
       filtered = filtered.filter((p) => p.category === activeCategory)
     }
@@ -427,6 +441,24 @@ export function StoreView() {
     }
     addToCart(product)
     addToast(`${product.name} agregado al carrito`, "success")
+  }
+
+  const handleViewDetails = (product: Product) => {
+    setSelectedProduct(product)
+    setCurrentImageIndex(0)
+    setIsProductModalOpen(true)
+  }
+
+  const handlePrevImage = () => {
+    if (selectedProduct && currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1)
+    }
+  }
+
+  const handleNextImage = () => {
+    if (selectedProduct && currentImageIndex < (selectedProduct.images?.length || 1) - 1) {
+      setCurrentImageIndex(currentImageIndex + 1)
+    }
   }
 
   const activeCategoryName = dynamicCategories.find((c) => c.id === activeCategory)?.name || "Todos los productos"
@@ -567,7 +599,7 @@ export function StoreView() {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                   {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+                    <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} onViewDetails={handleViewDetails} />
                   ))}
                 </div>
               )}
@@ -590,6 +622,122 @@ export function StoreView() {
 
       {/* Cart Sidebar */}
       <CartSidebar isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+
+      {/* Product Details Modal */}
+      {isProductModalOpen && selectedProduct && (
+        <div className="fixed inset-0 bg-foreground/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-xl font-bold text-foreground">{selectedProduct.name}</h2>
+              <button
+                onClick={() => setIsProductModalOpen(false)}
+                className="w-10 h-10 rounded-xl bg-background-secondary flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="grid md:grid-cols-2 gap-6 p-6">
+                {/* Images */}
+                <div className="space-y-4">
+                  <div className="relative aspect-square bg-background-secondary rounded-xl overflow-hidden">
+                    <img
+                      src={selectedProduct.images?.[currentImageIndex] || selectedProduct.image || "/placeholder.svg"}
+                      alt={selectedProduct.name}
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* Image Navigation */}
+                    {selectedProduct.images && selectedProduct.images.length > 1 && (
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                        <button
+                          onClick={handlePrevImage}
+                          disabled={currentImageIndex === 0}
+                          className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-50 transition-colors"
+                        >
+                          <ChevronLeftIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={handleNextImage}
+                          disabled={currentImageIndex === selectedProduct.images.length - 1}
+                          className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-50 transition-colors"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Image Indicators */}
+                  {selectedProduct.images && selectedProduct.images.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-2">
+                      {selectedProduct.images.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            index === currentImageIndex ? "bg-primary" : "bg-background/50"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Info */}
+                <div className="space-y-4">
+                  {/* Brand */}
+                  {selectedProduct.brand && (
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Marca</p>
+                      <p className="font-medium text-foreground">{selectedProduct.brand}</p>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {selectedProduct.description && (
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Descripción</p>
+                      <p className="text-foreground leading-relaxed">{selectedProduct.description}</p>
+                    </div>
+                  )}
+
+                  {/* Price and Stock */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Precio</p>
+                      <p className="text-2xl font-bold text-primary">${selectedProduct.price}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground-muted mb-1">Stock disponible</p>
+                      <p className="text-2xl font-bold text-foreground">{selectedProduct.stock} uds.</p>
+                    </div>
+                  </div>
+
+                  {/* Add to Cart Button */}
+                  <button
+                    onClick={() => {
+                      handleAddToCart(selectedProduct)
+                      setIsProductModalOpen(false)
+                    }}
+                    disabled={!selectedProduct.available || selectedProduct.stock <= 0}
+                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${
+                      !selectedProduct.available || selectedProduct.stock <= 0
+                        ? "bg-background/60 text-foreground/50 cursor-not-allowed"
+                        : "bg-primary text-primary-foreground hover:bg-primary-hover"
+                    }`}
+                  >
+                    {!selectedProduct.available || selectedProduct.stock <= 0 ? "Sin stock" : "Agregar al carrito"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

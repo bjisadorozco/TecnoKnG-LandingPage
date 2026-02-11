@@ -7,6 +7,7 @@ export interface Product {
   name: string
   price: number
   image: string
+  images: string[]
   category: string
   brand: string
   description: string
@@ -57,9 +58,11 @@ interface StoreContextType {
   orders: OrderRequest[]
   addOrder: (order: Omit<OrderRequest, "id" | "createdAt" | "status">) => void
   updateOrderStatus: (orderId: string, status: OrderRequest["status"]) => void
+  deleteOrder: (orderId: string) => void
   contactMessages: ContactMessage[]
   addContactMessage: (message: Omit<ContactMessage, "id" | "createdAt" | "status">) => void
   updateMessageStatus: (messageId: string, status: ContactMessage["status"]) => void
+  deleteMessage: (messageId: string) => void
 }
 
 const StoreContext = React.createContext<StoreContextType | undefined>(undefined)
@@ -154,8 +157,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return newOrder
   }, [])
 
-  const updateOrderStatus = React.useCallback((orderId: string, status: OrderRequest["status"]) => {
-    setOrders((prev) => (Array.isArray(prev) ? prev : []).map((order) => (order.id === orderId ? { ...order, status } : order)))
+  const updateOrderStatus = React.useCallback(async (orderId: string, status: OrderRequest["status"]) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      
+      if (!res.ok) {
+        throw new Error("Error al actualizar estado del pedido")
+      }
+      
+      const updatedOrder = await res.json()
+      setOrders((prev) => (Array.isArray(prev) ? prev : []).map((order) => (order.id === orderId ? updatedOrder : order)))
+      return updatedOrder
+    } catch (error) {
+      console.error("Error updating order status:", error)
+      // En caso de error, actualizamos localmente para mantener la UX
+      setOrders((prev) => (Array.isArray(prev) ? prev : []).map((order) => (order.id === orderId ? { ...order, status } : order)))
+      throw error
+    }
   }, [])
 
   const addContactMessage = React.useCallback(async (message: Omit<ContactMessage, "id" | "createdAt" | "status">) => {
@@ -169,8 +191,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return newMessage
   }, [])
 
-  const updateMessageStatus = React.useCallback((messageId: string, status: ContactMessage["status"]) => {
-    setContactMessages((prev) => (Array.isArray(prev) ? prev : []).map((msg) => (msg.id === messageId ? { ...msg, status } : msg)))
+  const updateMessageStatus = React.useCallback(async (messageId: string, status: ContactMessage["status"]) => {
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      
+      if (!res.ok) {
+        throw new Error("Error al actualizar estado del mensaje")
+      }
+      
+      const updatedMessage = await res.json()
+      setContactMessages((prev) => (Array.isArray(prev) ? prev : []).map((msg) => (msg.id === messageId ? updatedMessage : msg)))
+      return updatedMessage
+    } catch (error) {
+      console.error("Error updating message status:", error)
+      // En caso de error, actualizamos localmente para mantener la UX
+      setContactMessages((prev) => (Array.isArray(prev) ? prev : []).map((msg) => (msg.id === messageId ? { ...msg, status } : msg)))
+      throw error
+    }
   }, [])
 
   const cartTotal = React.useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart])
@@ -233,6 +274,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setProducts((prev) => (Array.isArray(prev) ? prev : []).filter((p) => p.id !== productId))
   }, [])
 
+  const deleteOrder = React.useCallback((orderId: string) => {
+    setOrders((prev) => (Array.isArray(prev) ? prev : []).filter((order) => order.id !== orderId))
+  }, [])
+
+  const deleteMessage = React.useCallback((messageId: string) => {
+    setContactMessages((prev) => (Array.isArray(prev) ? prev : []).filter((message) => message.id !== messageId))
+  }, [])
+
   return (
     <StoreContext.Provider
       value={{
@@ -251,9 +300,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         orders,
         addOrder,
         updateOrderStatus,
+        deleteOrder,
         contactMessages,
         addContactMessage,
         updateMessageStatus,
+        deleteMessage,
       }}
     >
       {children}
