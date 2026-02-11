@@ -25,6 +25,7 @@ function mapProductSnapshot(snapshot: QueryDocumentSnapshot<DocumentData>): Prod
     description: data.description ?? "",
     price: data.price ?? 0,
     image: data.image ?? "",
+    images: data.images ?? [],
     category: data.category ?? "accessories",
     brand: data.brand ?? "",
     stock: data.stock ?? 0,
