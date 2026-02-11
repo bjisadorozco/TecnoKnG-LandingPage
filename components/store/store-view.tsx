@@ -81,10 +81,10 @@ function ProductCard({ product, onAddToCart, onViewDetails }: {
           <button
             onClick={() => onAddToCart(product)}
             disabled={isOutOfStock}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all duration-200 flex items-center justify-center gap-2 ${
+            className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               isOutOfStock
-                ? "bg-background/60 text-primary-foreground/50 cursor-not-allowed"
-                : "bg-background text-primary hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98]"
+                ? "bg-white text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-800 hover:bg-gray-100"
             }`}
           >
             {isOutOfStock ? "Sin stock" : "Agregar"}
