@@ -337,13 +337,22 @@ function KanbanOrderCard({
           </button>
         )}
         {order.status === "completed" || order.status === "cancelled" ? (
-          <button
-            onClick={onArchive}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-orange-500/10 text-orange-600 text-xs font-medium hover:bg-orange-500/20 transition-colors"
-          >
-            <Archive className="w-3 h-3" />
-            Archivar
-          </button>
+          <>
+            <button
+              onClick={onShowDetails}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-gray-500/10 text-gray-600 text-xs font-medium hover:bg-gray-500/20 transition-colors"
+            >
+              <Eye className="w-3 h-3" />
+              Ver
+            </button>
+            <button
+              onClick={onArchive}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-orange-500/10 text-orange-600 text-xs font-medium hover:bg-orange-500/20 transition-colors"
+            >
+              <Archive className="w-3 h-3" />
+              Archivar
+            </button>
+          </>
         ) : (
           <button
             onClick={onShowDetails}
