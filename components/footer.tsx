@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Cpu, Mail, Phone, MapPin } from "lucide-react"
+import { Cpu, Mail, MapPin, MessageCircle } from "lucide-react"
 
 const footerLinks = {
   services: [
@@ -69,18 +69,22 @@ export function Footer() {
             {/* Contact Info - en línea */}
             <div className="flex flex-wrap items-center gap-6">
               <a
-                href="tel:+15551234567"
+                href="https://wa.me/573008220645"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-background/70 hover:text-primary transition-colors text-sm"
               >
-                <Phone className="w-4 h-4" />
-                +1 (555) 123-4567
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                </svg>
+                +57 300 822 0645
               </a>
               <a
-                href="mailto:contacto@TecnoKnG.com"
+                href="mailto:kgnprogram@gmail.com"
                 className="flex items-center gap-2 text-background/70 hover:text-primary transition-colors text-sm"
               >
                 <Mail className="w-4 h-4" />
-                contacto@TecnoKnG.com
+                kgnprogram@gmail.com
               </a>
               <div className="flex items-center gap-2 text-background/70 text-sm">
                 <MapPin className="w-4 h-4" />
@@ -91,7 +95,9 @@ export function Footer() {
             {/* Social Icons */}
             <div className="flex items-center gap-3">
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61586899029457&sk=about"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
                 aria-label="Facebook"
               >
@@ -100,7 +106,9 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/tecnokng/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
                 aria-label="Instagram"
               >
@@ -126,7 +134,9 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="#"
+                href="https://wa.me/573008220645"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
                 aria-label="WhatsApp"
               >

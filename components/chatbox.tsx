@@ -26,7 +26,7 @@ const botResponses: Record<string, string> = {
   garantía:
     "Todos mis servicios incluyen garantía de 30 a 90 días dependiendo del tipo de reparación. Los repuestos tienen su propia garantía del fabricante.",
   default:
-    "¡Gracias por tu mensaje! Te responderé lo antes posible. También puedes llamarme al +1 (555) 123-4567 para atención inmediata.",
+    "¡Gracias por tu mensaje! Te responderé lo antes posible. También puedes llamarme al +57 300 822 0645 para atención inmediata.",
 }
 
 function getBotResponse(message: string): string {
