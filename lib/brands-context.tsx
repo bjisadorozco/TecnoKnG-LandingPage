@@ -16,14 +16,15 @@ import { firestoreDb } from '@/lib/firebase-client'
 interface Brand {
   id: string
   name: string
+  categories: string[] // Array de IDs de categorías asociadas
   createdAt: Date
 }
 
 interface BrandsContextType {
   brands: Brand[]
   loading: boolean
-  addBrand: (name: string) => Promise<void>
-  updateBrand: (id: string, name: string) => Promise<void>
+  addBrand: (name: string, categories: string[]) => Promise<void>
+  updateBrand: (id: string, name: string, categories: string[]) => Promise<void>
   deleteBrand: (id: string) => Promise<void>
   refreshBrands: () => Promise<void>
 }
@@ -46,6 +47,7 @@ export function BrandsProvider({ children }: { children: ReactNode }) {
         brandsData.push({
           id: doc.id,
           name: data.name,
+          categories: data.categories || [],
           createdAt: data.createdAt?.toDate() || new Date()
         })
       })
@@ -63,9 +65,9 @@ export function BrandsProvider({ children }: { children: ReactNode }) {
     fetchBrands()
   }, [])
 
-  const addBrand = async (name: string) => {
+  const addBrand = async (name: string, categories: string[]) => {
     try {
-      console.log('Adding brand:', name)
+      console.log('Adding brand:', name, 'categories:', categories)
       
       // Verificar si ya existe una marca con ese nombre
       const existingBrand = brands.find(brand => 
@@ -78,6 +80,7 @@ export function BrandsProvider({ children }: { children: ReactNode }) {
 
       const brandData = {
         name: name.trim(),
+        categories: categories || [],
         createdAt: new Date()
       }
 
@@ -91,9 +94,9 @@ export function BrandsProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const updateBrand = async (id: string, name: string) => {
+  const updateBrand = async (id: string, name: string, categories: string[]) => {
     try {
-      console.log('Updating brand:', id, name)
+      console.log('Updating brand:', id, name, 'categories:', categories)
       
       // Verificar si ya existe otra marca con ese nombre
       const existingBrand = brands.find(brand => 
@@ -106,7 +109,8 @@ export function BrandsProvider({ children }: { children: ReactNode }) {
 
       const brandRef = doc(firestoreDb, 'brands', id)
       await updateDoc(brandRef, {
-        name: name.trim()
+        name: name.trim(),
+        categories: categories || []
       })
       
       console.log('Brand updated successfully')

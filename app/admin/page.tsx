@@ -50,7 +50,8 @@ function AdminPage() {
   // Estado para gestión de marcas
   const [isBrandModalOpen, setIsBrandModalOpen] = React.useState(false)
   const [newBrandName, setNewBrandName] = React.useState("")
-  const [editingBrand, setEditingBrand] = React.useState<{id: string, name: string} | null>(null)
+  const [selectedBrandCategories, setSelectedBrandCategories] = React.useState<string[]>([])
+  const [editingBrand, setEditingBrand] = React.useState<{id: string, name: string, categories: string[]} | null>(null)
 
   // Funciones para gestión de categorías con persistencia
   const handleAddCategory = async () => {
@@ -143,8 +144,9 @@ function AdminPage() {
         return
       }
 
-      await addBrand(newBrandName)
+      await addBrand(newBrandName, selectedBrandCategories)
       setNewBrandName("")
+      setSelectedBrandCategories([])
       toast({ 
         title: "Éxito",
         description: "Marca agregada correctamente"
@@ -157,9 +159,10 @@ function AdminPage() {
     }
   }
 
-  const handleEditBrand = (brand: {id: string, name: string}) => {
+  const handleEditBrand = (brand: {id: string, name: string, categories: string[]}) => {
     setEditingBrand(brand)
     setNewBrandName(brand.name)
+    setSelectedBrandCategories(brand.categories || [])
   }
 
   const handleUpdateBrand = async () => {
@@ -172,9 +175,10 @@ function AdminPage() {
         return
       }
 
-      await updateBrand(editingBrand.id, newBrandName)
+      await updateBrand(editingBrand.id, newBrandName, selectedBrandCategories)
       setEditingBrand(null)
       setNewBrandName("")
+      setSelectedBrandCategories([])
       toast({ 
         title: "Éxito",
         description: "Marca actualizada correctamente"
@@ -210,6 +214,7 @@ function AdminPage() {
     setIsBrandModalOpen(false)
     setEditingBrand(null)
     setNewBrandName("")
+    setSelectedBrandCategories([])
   }
 
   // Redirigir al login si no está autenticado o no es admin
@@ -277,12 +282,18 @@ function AdminPage() {
       handleEditCategory={handleEditCategory}
       handleUpdateCategory={handleUpdateCategory}
       handleDeleteCategory={handleDeleteCategory}
-      closeCategoryModal={closeCategoryModal}
+      closeCategoryModal={() => {
+        setIsCategoryModalOpen(false)
+        setEditingCategory(null)
+        setNewCategoryName("")
+      }}
       productBrands={brands}
       isBrandModalOpen={isBrandModalOpen}
       setIsBrandModalOpen={setIsBrandModalOpen}
       newBrandName={newBrandName}
       setNewBrandName={setNewBrandName}
+      selectedBrandCategories={selectedBrandCategories}
+      setSelectedBrandCategories={setSelectedBrandCategories}
       editingBrand={editingBrand}
       setEditingBrand={setEditingBrand}
       handleAddBrand={handleAddBrand}
@@ -439,6 +450,8 @@ function AdminDashboard({
   setIsBrandModalOpen,
   newBrandName,
   setNewBrandName,
+  selectedBrandCategories,
+  setSelectedBrandCategories,
   editingBrand,
   setEditingBrand,
   handleAddBrand,
@@ -448,7 +461,7 @@ function AdminDashboard({
   closeBrandModal
 }: { 
   onLogout: () => void
-  productCategories: {id: string, label: string}[]
+  productCategories: any[]
   isCategoryModalOpen: boolean
   setIsCategoryModalOpen: React.Dispatch<React.SetStateAction<boolean>>
   newCategoryName: string
@@ -460,15 +473,17 @@ function AdminDashboard({
   handleUpdateCategory: () => void
   handleDeleteCategory: (categoryId: string) => void
   closeCategoryModal: () => void
-  productBrands: {id: string, name: string}[]
+  productBrands: any[]
   isBrandModalOpen: boolean
   setIsBrandModalOpen: React.Dispatch<React.SetStateAction<boolean>>
   newBrandName: string
   setNewBrandName: React.Dispatch<React.SetStateAction<string>>
-  editingBrand: {id: string, name: string} | null
-  setEditingBrand: React.Dispatch<React.SetStateAction<{id: string, name: string} | null>>
+  selectedBrandCategories: string[]
+  setSelectedBrandCategories: React.Dispatch<React.SetStateAction<string[]>>
+  editingBrand: {id: string, name: string, categories: string[]} | null
+  setEditingBrand: React.Dispatch<React.SetStateAction<{id: string, name: string, categories: string[]} | null>>
   handleAddBrand: () => void
-  handleEditBrand: (brand: {id: string, name: string}) => void
+  handleEditBrand: (brand: {id: string, name: string, categories: string[]}) => void
   handleUpdateBrand: () => void
   handleDeleteBrand: (brandId: string) => void
   closeBrandModal: () => void
@@ -1517,6 +1532,26 @@ function AdminDashboard({
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
+                  Categoría asociada
+                </label>
+                <select
+                  value={selectedBrandCategories[0] || ""}
+                  onChange={(e) => {
+                    setSelectedBrandCategories(e.target.value ? [e.target.value] : [])
+                  }}
+                  className="w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {productCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Nombre de la marca
                 </label>
                 <input
@@ -1533,7 +1568,7 @@ function AdminDashboard({
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Marcas existentes
                 </label>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2 max-h-24 overflow-y-auto">
                   {productBrands.map((brand) => (
                     <div
                       key={brand.id}

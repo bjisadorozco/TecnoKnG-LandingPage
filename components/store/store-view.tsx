@@ -409,6 +409,17 @@ export function StoreView() {
     return categoriesWithBrandFilter.includes(activeCategory)
   }, [activeCategory, categoriesWithBrandFilter])
 
+  // Filtrar marcas según la categoría actual
+  const filteredBrands = React.useMemo(() => {
+    if (!shouldShowBrandFilter || activeCategory === "all") {
+      return brands
+    }
+    
+    return brands.filter(brand => 
+      brand.categories && brand.categories.includes(activeCategory)
+    )
+  }, [brands, activeCategory, shouldShowBrandFilter])
+
   // Construir categorías dinámicamente con la opción "Todos"
   const dynamicCategories = React.useMemo(() => {
     const cats = [
@@ -569,7 +580,7 @@ export function StoreView() {
                       disabled={brandsLoading}
                     >
                       <option value="">Todas las marcas</option>
-                      {brands.map((brand) => (
+                      {filteredBrands.map((brand) => (
                         <option key={brand.id} value={brand.name}>
                           {brand.name}
                         </option>
