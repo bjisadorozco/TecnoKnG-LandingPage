@@ -491,6 +491,7 @@ function AdminDashboard({
     brand: productBrands[0]?.id ?? "",
     stock: "",
     available: true,
+    enableBrand: false,
   })
   const {
     orders,
@@ -631,14 +632,23 @@ function AdminDashboard({
       brand: productBrands[0]?.id ?? "",
       stock: "",
       available: true,
+      enableBrand: false,
     })
   }, [productCategories, productBrands])
 
   const handleProductInputChange = <K extends keyof typeof productForm>(field: K, value: typeof productForm[K]) => {
-    setProductForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+    setProductForm((prev) => {
+      const newForm = { ...prev, [field]: value }
+      
+      // Si cambia la categoría, actualizar la habilitación de marca
+      if (field === 'category') {
+        const categoriesWithBrands = ['computadores', 'laptops-', 'celulares']
+        const shouldEnableBrand = categoriesWithBrands.includes(value as string)
+        newForm.enableBrand = shouldEnableBrand
+      }
+      
+      return newForm
+    })
   }
 
   const closeProductModal = React.useCallback(() => {
@@ -1261,7 +1271,12 @@ function AdminDashboard({
                     <select
                       value={productForm.brand}
                       onChange={(e) => handleProductInputChange("brand", e.target.value)}
-                      className="mt-1 w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-sm"
+                      disabled={!productForm.enableBrand}
+                      className={`mt-1 w-full px-4 py-3 rounded-xl border text-sm ${
+                        productForm.enableBrand 
+                          ? "bg-background-secondary border-border" 
+                          : "bg-foreground/5 border-border cursor-not-allowed opacity-50"
+                      }`}
                     >
                       <option value="">Seleccionar marca</option>
                       {productBrands.map((brand) => (
@@ -1270,6 +1285,18 @@ function AdminDashboard({
                         </option>
                       ))}
                     </select>
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="enableBrand"
+                        checked={productForm.enableBrand}
+                        onChange={(e) => handleProductInputChange("enableBrand", e.target.checked)}
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <label htmlFor="enableBrand" className="text-xs text-foreground-secondary">
+                        Habilitar marca manualmente
+                      </label>
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground">Stock</label>

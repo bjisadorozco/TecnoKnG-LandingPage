@@ -9,7 +9,7 @@ export async function POST() {
     const adminAuth = getAdminAuth()
 
     const email = "brayanorozco920@gmail.com"
-    const password = "tecnokng"
+    const password = "93Ds15."
     const username = "tecnokng"
 
     console.log("Creando usuario administrador...")

@@ -9,14 +9,14 @@ const contactInfo = [
   {
     icon: Phone,
     label: "Teléfono",
-    value: "+1 (555) 123-4567",
+    value: "+57 300 822 0645",
     href: "tel:+15551234567",
   },
   {
     icon: Mail,
     label: "Email",
-    value: "contacto@TecnoKnG.com",
-    href: "mailto:contacto@TecnoKnG.com",
+    value: "kgnprogram@gmail.com",
+    href: "mailto:kgnprogram@gmail.com",
   },
   {
     icon: MapPin,
@@ -27,7 +27,7 @@ const contactInfo = [
   {
     icon: Clock,
     label: "Horario",
-    value: "Lun - Sáb: 9:00 - 19:00",
+    value: "Lun - Sáb: 08:00 am - 06:00 pm",
     href: null,
   },
 ]
@@ -166,7 +166,7 @@ export function ContactSection() {
                     value={formState.phone}
                     onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+57 300 822 0645"
                   />
                 </div>
                 <div>

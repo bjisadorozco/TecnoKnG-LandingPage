@@ -177,7 +177,7 @@ function CartSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
                     value={formData.customerPhone}
                     onChange={(e) => setFormData((prev) => ({ ...prev, customerPhone: e.target.value }))}
                     className="w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+57 300 822 0645"
                   />
                 </div>
                 <div>
@@ -187,7 +187,7 @@ function CartSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
                     value={formData.customerEmail}
                     onChange={(e) => setFormData((prev) => ({ ...prev, customerEmail: e.target.value }))}
                     className="w-full px-4 py-3 rounded-xl bg-background-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="tu@email.com"
+                    placeholder="usuario@email.com"
                   />
                 </div>
                 <div>
@@ -399,6 +399,16 @@ export function StoreView() {
   const { categories, loading: categoriesLoading } = useCategories()
   const { brands, loading: brandsLoading } = useBrands()
 
+  // Categorías que deben mostrar filtro de marcas
+  const categoriesWithBrandFilter = React.useMemo(() => {
+    return ['computadores', 'laptops-', 'laptop', 'celulares', 'celular']
+  }, [])
+
+  // Verificar si la categoría actual debe mostrar filtro de marcas
+  const shouldShowBrandFilter = React.useMemo(() => {
+    return categoriesWithBrandFilter.includes(activeCategory)
+  }, [activeCategory, categoriesWithBrandFilter])
+
   // Construir categorías dinámicamente con la opción "Todos"
   const dynamicCategories = React.useMemo(() => {
     const cats = [
@@ -421,9 +431,12 @@ export function StoreView() {
     if (activeCategory !== "all") {
       filtered = filtered.filter((p) => p.category === activeCategory)
     }
-    if (brandFilter.trim()) {
+    
+    // Solo aplicar filtro de marca si la categoría lo permite o si estamos en "Todos"
+    if (shouldShowBrandFilter && brandFilter.trim()) {
       filtered = filtered.filter((p) => p.brand?.toLowerCase().includes(brandFilter.toLowerCase()))
     }
+    
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
@@ -431,7 +444,7 @@ export function StoreView() {
       )
     }
     return filtered
-  }, [activeCategory, brandFilter, searchQuery, products])
+  }, [activeCategory, brandFilter, searchQuery, products, shouldShowBrandFilter])
 
   const handleAddToCart = (product: Product) => {
     const inCart = cart.find((item) => item.id === product.id)
@@ -546,6 +559,7 @@ export function StoreView() {
                       className="w-full pl-12 pr-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     />
                   </div>
+                  {shouldShowBrandFilter && (
                   <div className="relative w-full md:max-w-xs">
                     <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted z-10" />
                     <select
@@ -563,11 +577,13 @@ export function StoreView() {
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground-muted pointer-events-none z-10" />
                   </div>
+                )}
                 </div>
                 <div className="hidden md:flex items-center gap-3">
                   <button
                     onClick={() => setCartOpen(true)}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                    disabled={cartCount === 0}
                   >
                     <ShoppingCart className="w-5 h-5" />
                     <span className="text-sm font-medium">Ver carrito</span>
