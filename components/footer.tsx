@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Cpu, Mail, MapPin, MessageCircle } from "lucide-react"
+import { Mail, MapPin, MessageCircle } from "lucide-react"
+import { brandAssets } from "@/lib/assets"
 
 const footerLinks = {
   services: [
@@ -30,12 +31,11 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Cpu className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">
-                Tecno<span className="text-primary">KnG</span>
-              </span>
+              <img
+                src={brandAssets.logos.main.src}
+                alt="TecnoKnG Logo"
+                className="h-10 w-auto"
+              />
             </Link>
             <p className="text-background/70 leading-relaxed max-w-md">
               Técnico especializado en reparación y mantenimiento de equipos tecnológicos. Tu confianza es mi prioridad.

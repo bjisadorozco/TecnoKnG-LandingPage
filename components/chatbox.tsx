@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { MessageCircle, X, Send, Bot, User, BotIcon } from "lucide-react"
+import { brandAssets } from "@/lib/assets"
 
 interface Message {
   id: string
@@ -129,12 +130,16 @@ export function Chatbox() {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-24 md:bottom-8 right-6 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-xl ${
+        className={`fixed bottom-24 md:bottom-8 right-6 z-40 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-xl ${
           isOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"
         }`}
         aria-label="Abrir chat"
       >
-        <BotIcon className="w-10 h-10" />
+        <img
+          src={brandAssets.assistant.virtual.src}
+          alt="Asistente Virtual TecnoKnG"
+          className="w-10 h-10 object-contain"
+        />
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-background" />
       </button>
 
@@ -148,9 +153,11 @@ export function Chatbox() {
           {/* Header */}
           <div className="flex items-center justify-between p-4 bg-primary text-primary-foreground shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                <Bot className="w-7 h-7" />
-              </div>
+              <img
+                src={brandAssets.assistant.virtual.src}
+                alt="Asistente Virtual TecnoKnG"
+                className="w-10 h-10 object-contain"
+              />
               <div>
                 <h3 className="font-semibold">Asistente TecnoKnG</h3>
                 <p className="text-xs text-primary-foreground/70">En línea</p>
@@ -173,9 +180,11 @@ export function Chatbox() {
                 className={`flex items-end gap-2 ${message.isBot ? "justify-start" : "justify-end"}`}
               >
                 {message.isBot && (
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Bot className="w-6 h-6 text-primary" />
-                  </div>
+                  <img
+                    src={brandAssets.assistant.virtual.src}
+                    alt="Asistente Virtual"
+                    className="w-8 h-8 object-contain"
+                  />
                 )}
                 <div
                   className={`max-w-[80%] px-4 py-3 rounded-2xl ${

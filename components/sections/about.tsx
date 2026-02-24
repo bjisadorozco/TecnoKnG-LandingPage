@@ -1,5 +1,6 @@
 "use client"
 import { Award, CheckCircle, Clock, Star, User } from "lucide-react"
+import { brandAssets } from "@/lib/assets"
 
 const stats = [
   { icon: Award, value: "5+", label: "Años de experiencia" },
@@ -16,9 +17,9 @@ export function AboutSection() {
           <div className="relative group">
             <div className="aspect-[4/3] rounded-3xl overflow-hidden">
               <img
-                src="/professional-tech-repair-technician-portrait-frien.jpg"
-                alt="TecnoKnG - Técnico profesional"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                src={brandAssets.technician.robot.src}
+                alt="TecnoKnG - Técnico robot especializado"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 animate-subtle-float"
               />
             </div>
             <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary via-primary-light to-primary opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500" />
@@ -35,7 +36,7 @@ export function AboutSection() {
             />
 
             {/* Floating Stats Card */}
-            <div className="absolute -bottom-6 -right-3 md:bottom-4 md:-right-8 p-3 rounded-2xl bg-primary text-primary-foreground shadow-xl animate-pulse-slow">
+            <div className="absolute -bottom-6 -right-3 md:bottom-4 md:-right-8 p-3 rounded-2xl bg-primary text-primary-foreground shadow-xl animate-subtle-pulse">
               <p className="text-2xl font-bold mb-1">Tec. Deison Silva</p>
               {/* <p className="text-sm text-primary-foreground/80">Tasa de éxito</p> */}
             </div>
@@ -89,16 +90,6 @@ export function AboutSection() {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes pulse-slow {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.02); }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
-        }
-      `}</style>
     </section>
   )
 }

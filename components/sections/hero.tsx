@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
 import { ArrowRight, CheckCircle, Zap, Shield, Clock, Wrench, Sparkles, TrendingUp } from "lucide-react"
+import { brandAssets } from "@/lib/assets"
 
 const features = [
   { icon: Zap, text: "Diagnóstico rápido" },
@@ -74,18 +75,17 @@ export function HeroSection() {
           {/* Visual */}
           <div className="order-1 lg:order-2 relative">
             <div className="relative aspect-square max-w-lg mx-auto">
-              {/* Main Card */}
-              <div className="absolute inset-4 rounded-3xl bg-gradient-to-br from-primary to-primary-light p-1 shadow-2xl shadow-primary/20">
-                <div className="w-full h-full rounded-[22px] bg-background flex items-center justify-center overflow-hidden">
-                  <img
-                    src="/professional-tech-repair-specialist-working-on-lap.jpg"
-                    alt="TecnoKnG - Especialista en reparación tecnológica"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+              {/* Robot más grande y sin marco con animación */}
+              <div className="w-full h-full flex items-center justify-center animate-float">
+                <img
+                  src={brandAssets.mascot.robot.src}
+                  alt="TecnoKnG Mascot - Robot técnico especializado"
+                  className="max-w-sm max-h-sm object-contain scale-95 lg:scale-100"
+                />
               </div>
 
-              <div className="absolute -top-4 -right-4 md:top-0 md:right-0 p-4 rounded-2xl bg-background shadow-xl border border-border animate-float">
+              {/* Cards flotantes sobre el robot */}
+              <div className="absolute -top-4 -right-4 md:top-0 md:right-0 p-4 rounded-2xl bg-background shadow-xl border border-border animate-float-delayed z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-success" />
@@ -97,7 +97,7 @@ export function HeroSection() {
                 </div>
               </div>
 
-              <div className="absolute -bottom-4 -left-4 md:bottom-8 md:-left-8 p-4 rounded-2xl bg-background shadow-xl border border-border animate-float-delayed">
+              <div className="absolute -bottom-4 -left-4 md:bottom-8 md:-left-8 p-4 rounded-2xl bg-background shadow-xl border border-border animate-float z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-primary" />

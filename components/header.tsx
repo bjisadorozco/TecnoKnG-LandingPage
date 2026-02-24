@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { ThemeToggle } from "./ui/theme-toggle"
 import { useStore } from "@/lib/store-context"
+import { getLogoByPage } from "@/lib/assets"
 
 const navItems = [
   { href: "/#inicio", label: "Inicio", icon: Home },
@@ -37,6 +38,9 @@ export function Header() {
 
   const isStorePage = pathname === "/tienda"
   const isAdminPage = pathname === "/admin"
+  
+  // Obtener el logo según la página
+  const currentLogo = getLogoByPage(isStorePage)
 
   /* Scroll desktop */
   React.useEffect(() => {
@@ -66,12 +70,11 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Cpu className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">
-              Tecno<span className="text-primary">KnG</span>
-            </span>
+            <img
+              src={currentLogo.src}
+              alt="TecnoKnG Logo"
+              className={`w-auto ${isStorePage ? "h-14 -my-2" : "h-10"}`}
+            />
           </Link>
 
           <div className="flex items-center gap-8">
@@ -161,10 +164,11 @@ export function Header() {
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-2"
               >
-                <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                  <Cpu className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <span className="font-semibold">TecnoKnG</span>
+                <img
+                  src={currentLogo.src}
+                  alt="TecnoKnG Logo"
+                  className={`w-auto ${isStorePage ? "h-12 -my-1.5" : "h-9"}`}
+                />
               </Link>
 
               {/* Toggle SOLO aquí */}

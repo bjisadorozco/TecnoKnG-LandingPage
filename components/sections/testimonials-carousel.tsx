@@ -26,7 +26,7 @@ const testimonials = [
     id: 3,
     name: "Ana Martínez",
     role: "Estudiante Universitaria",
-    avatar: "/placeholder.svg?height=80&width=80",
+    avatar: "/woman-professional-portrait-smiling.jpg",
     content:
       "Le cambió la pantalla a mi celular en tiempo récord y quedó perfecto. Además los precios son muy accesibles para estudiantes. 100% recomendado.",
     rating: 5,
@@ -35,7 +35,7 @@ const testimonials = [
     id: 4,
     name: "Roberto Sánchez",
     role: "Contador",
-    avatar: "/placeholder.svg?height=80&width=80",
+    avatar: "/man-creative-professional-portrait.jpg",
     content:
       "Mi PC estaba muy lenta y después del mantenimiento que le hizo TecnoKnG funciona mejor que cuando la compré. Muy satisfecho con el resultado.",
     rating: 5,

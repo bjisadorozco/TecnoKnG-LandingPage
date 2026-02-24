@@ -27,6 +27,7 @@ import { useStore, type Product } from "@/lib/store-context"
 import { useToast } from "@/hooks/use-toast"
 import { useCategories } from "@/lib/categories-context"
 import { useBrands } from "@/lib/brands-context"
+import { brandAssets } from "@/lib/assets"
 
 // Icon mapping para categorías dinámicas
 const categoryIcons: Record<string, React.ComponentType<any>> = {
@@ -333,7 +334,11 @@ function MobileCategorySidebar({
       >
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center justify-between mb-8">
-            <span className="text-xl font-bold text-primary-foreground">TecnoKnG</span>
+            <img
+              src={brandAssets.logos.ecommerce.src}
+              alt="TecnoKnG Tienda"
+              className="h-8 w-auto"
+            />
             <button
               onClick={onClose}
               className="w-10 h-10 rounded-xl bg-primary-foreground/10 flex items-center justify-center text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
@@ -522,8 +527,12 @@ export function StoreView() {
             {/* Mobile Header */}
             <div className="lg:hidden sticky top-0 z-40 bg-background border-b border-border -mx-4 -mt-4">
               <div className="flex items-center justify-between px-4 py-3 gap-3">
-                <Link href="/" className="text-lg font-bold text-foreground flex-shrink-0">
-                  Tecno<span className="text-primary">KnG</span>
+                <Link href="/" className="flex-shrink-0">
+                  <img
+                    src={brandAssets.logos.ecommerce.src}
+                    alt="TecnoKnG Tienda"
+                    className="h-7 w-auto"
+                  />
                 </Link>
                 <button
                   onClick={() => setMobileSidebarOpen(true)}
