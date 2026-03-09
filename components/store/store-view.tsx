@@ -51,14 +51,50 @@ function ProductCard({ product, onAddToCart, onViewDetails }: {
   onViewDetails: (product: Product) => void;
 }) {
   const isOutOfStock = !product.available || product.stock <= 0
+  const hasMultipleImages = product.images && product.images.length > 1
+  
   return (
     <article className="group bg-background rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 relative">
       <div className={`aspect-square overflow-hidden bg-background-secondary ${isOutOfStock ? "opacity-70" : ""}`}>
-        <img
-          src={product.image || "/placeholder.svg"}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        {hasMultipleImages ? (
+          // Carrusel de múltiples imágenes
+          <div className="relative w-full h-full">
+            <img
+              src={product.images[0] || "/placeholder.svg"}
+              alt={product.name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            {/* Indicador de múltiples imágenes */}
+            <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <Package className="w-3 h-3" />
+              {product.images.length}
+            </div>
+            {/* Miniaturas adicionales */}
+            <div className="absolute bottom-2 left-2 flex gap-1">
+              {product.images.slice(1, 3).map((image, index) => (
+                <div key={index} className="w-8 h-8 bg-background/80 rounded border border-white/20 overflow-hidden">
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 2}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+              {product.images.length > 3 && (
+                <div className="w-8 h-8 bg-black/60 rounded border border-white/20 flex items-center justify-center">
+                  <span className="text-white text-xs">+{product.images.length - 3}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          // Imagen única
+          <img
+            src={product.image || "/placeholder.svg"}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
       </div>
       {isOutOfStock && (
         <div className="absolute inset-0 flex items-center justify-center bg-foreground/60 text-background font-semibold text-lg tracking-wide">
@@ -404,6 +440,36 @@ export function StoreView() {
   const { categories, loading: categoriesLoading } = useCategories()
   const { brands, loading: brandsLoading } = useBrands()
 
+  // Efecto para ocultar/mostrar la navegación cuando se abre/cierra el modal
+  React.useEffect(() => {
+    const header = document.querySelector('header')
+    const footer = document.querySelector('footer')
+    if (header) {
+      if (isProductModalOpen) {
+        header.style.display = 'none'
+      } else {
+        header.style.display = ''
+      }
+    }
+    if (footer) {
+      if (isProductModalOpen) {
+        footer.style.display = 'none'
+      } else {
+        footer.style.display = ''
+      }
+    }
+    
+    // Limpiar cuando el componente se desmonte
+    return () => {
+      if (header) {
+        header.style.display = ''
+      }
+      if (footer) {
+        footer.style.display = ''
+      }
+    }
+  }, [isProductModalOpen])
+
   // Categorías que deben mostrar filtro de marcas
   const categoriesWithBrandFilter = React.useMemo(() => {
     return ['computadores', 'laptops-', 'laptop', 'celulares', 'celular']
@@ -676,98 +742,124 @@ export function StoreView() {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="grid md:grid-cols-2 gap-6 p-6">
-                {/* Images */}
-                <div className="space-y-4">
-                  <div className="relative aspect-square bg-background-secondary rounded-xl overflow-hidden">
-                    <img
-                      src={selectedProduct.images?.[currentImageIndex] || selectedProduct.image || "/placeholder.svg"}
-                      alt={selectedProduct.name}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Image Navigation */}
-                    {selectedProduct.images && selectedProduct.images.length > 1 && (
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                        <button
-                          onClick={handlePrevImage}
-                          disabled={currentImageIndex === 0}
-                          className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-50 transition-colors"
-                        >
-                          <ChevronLeftIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={handleNextImage}
-                          disabled={currentImageIndex === selectedProduct.images.length - 1}
-                          className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-50 transition-colors"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Image Indicators */}
+              <div className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                  {/* Thumbnail Gallery - Vertical */}
                   {selectedProduct.images && selectedProduct.images.length > 1 && (
-                    <div className="flex justify-center gap-2 mt-2">
-                      {selectedProduct.images.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-colors ${
-                            index === currentImageIndex ? "bg-primary" : "bg-background/50"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Product Info */}
-                <div className="space-y-4">
-                  {/* Brand */}
-                  {selectedProduct.brand && (
-                    <div>
-                      <p className="text-sm text-foreground-muted mb-1">Marca</p>
-                      <p className="font-medium text-foreground">{selectedProduct.brand}</p>
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  {selectedProduct.description && (
-                    <div>
-                      <p className="text-sm text-foreground-muted mb-1">Descripción</p>
-                      <p className="text-foreground leading-relaxed">{selectedProduct.description}</p>
+                    <div className="lg:col-span-2 order-2 lg:order-1">
+                      <div className="h-full lg:h-auto lg:max-h-[500px] lg:overflow-y-auto lg:overflow-x-hidden">
+                        <div className="flex lg:flex-col gap-2 lg:gap-2 lg:px-0 lg:pr-1">
+                          {selectedProduct.images.map((image, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setCurrentImageIndex(index)}
+                              className={`relative flex-shrink-0 w-16 h-16 lg:w-full lg:aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                                index === currentImageIndex 
+                                  ? "border-primary shadow-lg" 
+                                  : "border-transparent"
+                              }`}
+                            >
+                              <img
+                                src={image}
+                                alt={`${selectedProduct.name} - Imagen ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              {/* Capa opaca blanca para imágenes no seleccionadas */}
+                              {index !== currentImageIndex && (
+                                <div className="absolute inset-0 bg-white/40 pointer-events-none" />
+                              )}
+                              {/* Sin capa para imagen seleccionada - se ve clara */}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   )}
 
-                  {/* Price and Stock */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-foreground-muted mb-1">Precio</p>
-                      <p className="text-2xl font-bold text-primary">${selectedProduct.price}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-foreground-muted mb-1">Stock disponible</p>
-                      <p className="text-2xl font-bold text-foreground">{selectedProduct.stock} uds.</p>
+                  {/* Main Image */}
+                  <div className={`${selectedProduct.images && selectedProduct.images.length > 1 ? 'lg:col-span-5' : 'lg:col-span-7'} order-1 lg:order-2`}>
+                    <div className="relative aspect-square bg-background-secondary rounded-xl overflow-hidden">
+                      <img
+                        src={selectedProduct.images?.[currentImageIndex] || selectedProduct.image || "/placeholder.svg"}
+                        alt={selectedProduct.name}
+                        className="w-full h-full object-cover"
+                      />
+                      
+                      {/* Image Navigation */}
+                      {selectedProduct.images && selectedProduct.images.length > 1 && (
+                        <>
+                          <button
+                            onClick={handlePrevImage}
+                            disabled={currentImageIndex === 0}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-50 transition-colors hover:bg-black/70"
+                          >
+                            <ChevronLeftIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={handleNextImage}
+                            disabled={currentImageIndex === selectedProduct.images.length - 1}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-50 transition-colors hover:bg-black/70"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                          
+                          {/* Image Counter */}
+                          <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                            {currentImageIndex + 1} / {selectedProduct.images.length}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  {/* Add to Cart Button */}
-                  <button
-                    onClick={() => {
-                      handleAddToCart(selectedProduct)
-                      setIsProductModalOpen(false)
-                    }}
-                    disabled={!selectedProduct.available || selectedProduct.stock <= 0}
-                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${
-                      !selectedProduct.available || selectedProduct.stock <= 0
-                        ? "bg-background/60 text-foreground/50 cursor-not-allowed"
-                        : "bg-primary text-primary-foreground hover:bg-primary-hover"
-                    }`}
-                  >
-                    {!selectedProduct.available || selectedProduct.stock <= 0 ? "Sin stock" : "Agregar al carrito"}
-                  </button>
+                  {/* Product Info - Right Side */}
+                  <div className={`${selectedProduct.images && selectedProduct.images.length > 1 ? 'lg:col-span-5' : 'lg:col-span-5'} order-3 lg:order-3`}>
+                    <div className="space-y-4">
+                      {/* Brand */}
+                      {selectedProduct.brand && (
+                        <div>
+                          <p className="text-sm text-foreground-muted mb-1">Marca</p>
+                          <p className="font-medium text-foreground">{selectedProduct.brand}</p>
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      {selectedProduct.description && (
+                        <div>
+                          <p className="text-sm text-foreground-muted mb-1">Descripción</p>
+                          <p className="text-foreground leading-relaxed text-sm">{selectedProduct.description}</p>
+                        </div>
+                      )}
+
+                      {/* Price and Stock */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-foreground-muted mb-1">Precio</p>
+                          <p className="text-xl font-bold text-primary">${selectedProduct.price}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-foreground-muted mb-1">Stock disponible</p>
+                          <p className="text-xl font-bold text-foreground">{selectedProduct.stock} uds.</p>
+                        </div>
+                      </div>
+
+                      {/* Add to Cart Button */}
+                      <button
+                        onClick={() => {
+                          handleAddToCart(selectedProduct)
+                          setIsProductModalOpen(false)
+                        }}
+                        disabled={!selectedProduct.available || selectedProduct.stock <= 0}
+                        className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${
+                          !selectedProduct.available || selectedProduct.stock <= 0
+                            ? "bg-background/60 text-foreground/50 cursor-not-allowed"
+                            : "bg-primary text-primary-foreground hover:bg-primary-hover"
+                        }`}
+                      >
+                        {!selectedProduct.available || selectedProduct.stock <= 0 ? "Sin stock" : "Agregar al carrito"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

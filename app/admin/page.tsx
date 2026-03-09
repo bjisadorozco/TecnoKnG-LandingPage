@@ -53,6 +53,10 @@ function AdminPage() {
   const [selectedBrandCategories, setSelectedBrandCategories] = React.useState<string[]>([])
   const [editingBrand, setEditingBrand] = React.useState<{id: string, name: string, categories: string[]} | null>(null)
 
+  // Estado para gestión de productos
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = React.useState(false)
+  const [editingProduct, setEditingProduct] = React.useState<any>(null)
+
   // Funciones para gestión de categorías con persistencia
   const handleAddCategory = async () => {
     try {
@@ -215,6 +219,57 @@ function AdminPage() {
     setEditingBrand(null)
     setNewBrandName("")
     setSelectedBrandCategories([])
+  }
+
+  // Funciones para gestión de productos
+  const handleEditProduct = (product: any) => {
+    setEditingProduct({...product})
+    setIsEditProductModalOpen(true)
+  }
+
+  const handleUpdateProduct = async () => {
+    if (!editingProduct || !editingProduct.id) {
+      toast({ 
+        title: "Error",
+        description: "Producto sin ID válido"
+      })
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editingProduct)
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar producto')
+      }
+
+      toast({ 
+        title: "Éxito",
+        description: "Producto actualizado correctamente"
+      })
+      
+      setIsEditProductModalOpen(false)
+      setEditingProduct(null)
+      
+      // Recargar productos
+      window.location.reload()
+    } catch (error: any) {
+      toast({ 
+        title: "Error",
+        description: error.message || "Error al actualizar producto"
+      })
+    }
+  }
+
+  const closeEditProductModal = () => {
+    setIsEditProductModalOpen(false)
+    setEditingProduct(null)
   }
 
   // Redirigir al login si no está autenticado o no es admin
@@ -496,6 +551,57 @@ function AdminDashboard({
   const [historyType, setHistoryType] = React.useState<"orders" | "messages">("orders")
   const [orderHistory, setOrderHistory] = React.useState<(OrderRequest & { archivedAt: Date })[]>([])
   const [messageHistory, setMessageHistory] = React.useState<(ContactMessage & { archivedAt: Date })[]>([])
+  const [editingProduct, setEditingProduct] = React.useState<any>(null)
+  
+  // Funciones para edición de productos
+  const handleEditProduct = (product: any) => {
+    setEditingProduct({...product})
+    setIsProductModalOpen(true)
+  }
+
+  const handleUpdateProduct = async () => {
+    if (!editingProduct || !editingProduct.id) {
+      addToast("Producto sin ID válido", "error")
+      return
+    }
+
+    try {
+      // Asegurar que el campo 'image' se actualice con la primera imagen del array
+      const updatedProduct = {
+        ...editingProduct,
+        image: editingProduct.images?.[0] || editingProduct.image || "",
+        images: editingProduct.images || [] // Asegurar que el array de imágenes se guarde
+      }
+
+      const response = await fetch(`/api/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProduct)
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar producto')
+      }
+
+      addToast("Producto actualizado correctamente", "success")
+      
+      setIsProductModalOpen(false)
+      setEditingProduct(null)
+      
+      // Recargar productos
+      window.location.reload()
+    } catch (error: any) {
+      addToast(error.message || "Error al actualizar producto", "error")
+    }
+  }
+
+  const closeEditProductModal = () => {
+    setIsProductModalOpen(false)
+    setEditingProduct(null)
+  }
+  
   const [productForm, setProductForm] = React.useState({
     name: "",
     description: "",
@@ -666,7 +772,7 @@ function AdminDashboard({
     })
   }
 
-  const closeProductModal = React.useCallback(() => {
+  const closeAddProductModal = React.useCallback(() => {
     setIsProductModalOpen(false)
     resetProductForm()
   }, [resetProductForm])
@@ -691,8 +797,8 @@ function AdminDashboard({
     })
 
     addToast("Producto registrado correctamente", "success")
-    closeProductModal()
-    resetProductForm()
+    closeAddProductModal()
+    // resetProductForm() // Comentado para evitar que se vacíe el formulario
   }
 
   const handleStockChange = (productId: string, value: string) => {
@@ -734,10 +840,10 @@ function AdminDashboard({
     const files = Array.from(e.target.files || [])
     if (!files.length) return
 
-    // Validate total file size (max 5MB each)
+    // Validate total file size (max 300KB each)
     const validFiles = files.filter(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`La imagen ${file.name} es demasiado grande. Máximo 5MB por imagen.`)
+      if (file.size > 300 * 1024) {
+        alert(`La imagen ${file.name} es demasiado grande. Máximo 300KB por imagen.`)
         return false
       }
       if (!file.type.startsWith('image/')) {
@@ -754,10 +860,13 @@ function AdminDashboard({
       const reader = new FileReader()
       reader.onloadend = () => {
         const result = reader.result as string
-        setProductForm(prev => ({
-          ...prev,
-          images: [...prev.images, result]
-        }))
+        setProductForm(prev => {
+          const newImages = [...prev.images, result].slice(0, 10) // Limitar a 10 imágenes
+          return {
+            ...prev,
+            images: newImages
+          }
+        })
       }
       reader.onerror = () => {
         alert(`Error al leer la imagen ${file.name}. Intenta de nuevo.`)
@@ -803,7 +912,7 @@ function AdminDashboard({
           <div className="p-4 sm:p-6 rounded-2xl bg-background border border-border">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Package className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                <Package className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-foreground">{orders.length}</p>
@@ -814,7 +923,7 @@ function AdminDashboard({
           <div className="p-4 sm:p-6 rounded-2xl bg-background border border-border">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
+                <Clock className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-foreground">{totalPendingOrders}</p>
@@ -825,7 +934,7 @@ function AdminDashboard({
           <div className="p-4 sm:p-6 rounded-2xl bg-background border border-border">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                <MessageSquare className="w-5 h-5 text-accent" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-foreground">{contactMessages.length}</p>
@@ -836,7 +945,7 @@ function AdminDashboard({
           <div className="p-4 sm:p-6 rounded-2xl bg-background border border-border">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-error/10 flex items-center justify-center">
-                <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-error" />
+                <Mail className="w-5 h-5 text-error" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-foreground">{totalPendingMessages}</p>
@@ -1170,6 +1279,13 @@ function AdminDashboard({
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => handleEditProduct(product)}
+                        className="px-3 py-2 rounded-xl text-sm font-medium transition-colors bg-foreground/10 text-foreground hover:bg-foreground/20"
+                        title="Editar producto"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleToggleAvailability(product.id)}
                         className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                           product.available
@@ -1210,7 +1326,7 @@ function AdminDashboard({
 
       {isProductModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={closeProductModal} />
+          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={closeAddProductModal} />
           <div className="relative z-10 w-full max-w-2xl bg-background rounded-2xl shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
               <div>
@@ -1218,7 +1334,7 @@ function AdminDashboard({
                 <h3 className="text-2xl font-bold text-foreground">Registrar producto</h3>
               </div>
               <button
-                onClick={closeProductModal}
+                onClick={closeAddProductModal}
                 className="w-10 h-10 rounded-xl bg-background-secondary border border-border flex items-center justify-center hover:text-primary"
                 aria-label="Cerrar modal"
               >
@@ -1364,11 +1480,11 @@ function AdminDashboard({
                             <p className="text-sm text-foreground-secondary">
                               {productForm.images.length === 0
                                 ? "Subir imágenes"
-                                : `Agregar (${productForm.images.length}/5)`
+                                : `Agregar (${productForm.images.length}/10)` // Cambiado de 3 a 10
                               }
                             </p>
                             <p className="text-xs text-foreground-muted mt-1">
-                              JPG, PNG, WebP • 5MB máx.
+                              JPG, PNG, WebP • 300KB máx. • 10 imágenes
                             </p>
                           </div>
                         </label>
@@ -1404,7 +1520,7 @@ function AdminDashboard({
                 <div className="flex flex-col-reverse gap-3 flex-row sm:flex-row sm:justify-end pt-4">
                   <button
                     type="button"
-                    onClick={closeProductModal}
+                    onClick={closeAddProductModal}
                     className="w-full sm:w-auto px-4 py-3 rounded-xl border border-border text-sm font-medium text-foreground-secondary hover:text-foreground"
                   >
                     Cancelar
@@ -1877,6 +1993,241 @@ function AdminDashboard({
                 className="px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover"
               >
                 Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de edición de producto */}
+      {isProductModalOpen && editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={closeEditProductModal} />
+          <div className="relative z-10 w-full max-w-2xl bg-background rounded-2xl shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
+              <div>
+                <p className="text-sm text-foreground-muted">Editar producto</p>
+                <h3 className="text-2xl font-bold text-foreground">{editingProduct.name}</h3>
+              </div>
+              <button
+                onClick={closeEditProductModal}
+                className="w-10 h-10 rounded-xl bg-background-secondary border border-border flex items-center justify-center hover:text-primary"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Nombre del producto *</label>
+                  <input
+                    type="text"
+                    value={editingProduct.name || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm"
+                    placeholder="Nombre del producto"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Precio *</label>
+                  <input
+                    type="number"
+                    value={editingProduct.price || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, price: parseFloat(e.target.value)})}
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Stock *</label>
+                  <input
+                    type="number"
+                    value={editingProduct.stock || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, stock: parseInt(e.target.value)})}
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Categoría *</label>
+                  <select
+                    value={editingProduct.category || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, category: e.target.value})}
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm"
+                  >
+                    <option value="">Seleccionar categoría</option>
+                    {productCategories.map((cat: any) => (
+                      <option key={cat.id} value={cat.id}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Marca</label>
+                  <input
+                    type="text"
+                    value={editingProduct.brand || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, brand: e.target.value})}
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm"
+                    placeholder="Marca del producto"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Disponibilidad</label>
+                  <select
+                    value={editingProduct.available ? 'true' : 'false'}
+                    onChange={(e) => setEditingProduct({...editingProduct, available: e.target.value === 'true'})}
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm"
+                  >
+                    <option value="true">Disponible</option>
+                    <option value="false">No disponible</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">Descripción</label>
+                  <textarea
+                    value={editingProduct.description || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm min-h-[100px] resize-none"
+                    placeholder="Descripción del producto"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">Imágenes del producto</label>
+                  
+                  {/* Sección de imágenes existentes */}
+                  {editingProduct.images && editingProduct.images.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-foreground-muted">Imágenes actuales ({editingProduct.images.length}/10)</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProduct((prev: any) => ({
+                              ...prev,
+                              images: []
+                            }))
+                          }}
+                          className="text-xs text-error hover:text-error/80 transition-colors"
+                        >
+                          Eliminar todas
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2">
+                        {editingProduct.images.map((image: string, index: number) => (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square bg-background-secondary rounded-lg overflow-hidden border border-border">
+                              <img
+                                src={image}
+                                alt={`Imagen ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingProduct((prev: any) => ({
+                                      ...prev,
+                                      images: prev.images?.filter((_: any, i: number) => i !== index) || []
+                                    }))
+                                  }}
+                                  className="w-8 h-8 rounded-full bg-error text-white flex items-center justify-center"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-xs text-foreground-muted text-center mt-1">#{index + 1}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sección para agregar nuevas imágenes */}
+                  {(!editingProduct.images || editingProduct.images.length < 10) && (
+                    <div>
+                      <p className="text-xs text-foreground-muted mb-2">
+                        {editingProduct.images && editingProduct.images.length > 0 
+                          ? "Agregar más imágenes" 
+                          : "Subir imágenes del producto"
+                        }
+                      </p>
+                      <label
+                        htmlFor="edit-product-images"
+                        className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border rounded-lg bg-background-secondary hover:bg-background/50 transition-colors cursor-pointer"
+                      >
+                        <div className="text-center">
+                          <Package className="w-8 h-8 text-foreground-muted mx-auto mb-2" />
+                          <p className="text-sm text-foreground-secondary">
+                            {editingProduct.images && editingProduct.images.length > 0
+                              ? `Agregar (${10 - (editingProduct.images?.length || 0)} disponibles)`
+                              : "Subir imágenes"
+                            }
+                          </p>
+                          <p className="text-xs text-foreground-muted mt-1">
+                            JPG, PNG, GIF • Máx. 10 imágenes
+                          </p>
+                        </div>
+                      </label>
+                      <input
+                        id="edit-product-images"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || [])
+                          if (files.length === 0) return
+                          
+                          const newImages: string[] = []
+                          files.forEach(file => {
+                            const reader = new FileReader()
+                            reader.onload = () => {
+                              const result = reader.result as string
+                              newImages.push(result)
+                              
+                              if (newImages.length === files.length) {
+                                setEditingProduct((prev: any) => ({
+                                  ...prev,
+                                  images: [...(prev.images || []), ...newImages].slice(0, 10)
+                                }))
+                              }
+                            }
+                            reader.readAsDataURL(file)
+                          })
+                        }}
+                        className="hidden"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between p-6 border-t border-border">
+              <button
+                onClick={closeEditProductModal}
+                className="px-6 py-3 rounded-xl bg-background-secondary border border-border text-sm font-medium text-foreground-secondary hover:text-foreground"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleUpdateProduct}
+                className="px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover"
+              >
+                Guardar cambios
               </button>
             </div>
           </div>
